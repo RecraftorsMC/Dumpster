@@ -1,0 +1,4 @@
+{
+  "dumpster.toast.error.title": "Error occurred upon dumping",
+  "dumpster.toast.error.desc": "A total of %d errors occurred. Check logs for details."
+}

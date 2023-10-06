@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "dumpster",
+  "version": "${version}",
+  "name": "Dumpster",
+  "description": "Dumps registry values",
+  "authors": [
+    "Nerjal Nosk"
+  ],
+  "contact": {
+    "sources": "https://github.com/RecraftorsMC/Dumpster",
+    "issues": "https://github.com/RecraftorsMC/Dumpster/issues"
+  },
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "mc.recraftors.dumpster.client.DumpsterClient"
+    ],
+    "server": [
+      "mc.recraftors.dumpster.server.DumpsterServer"
+    ],
+    "recipe-dump": [
+      "mc.recraftors.dumpster.recipes.BlastingJsonParser",
+      "mc.recraftors.dumpster.recipes.CampfireCookingJsonParser",
+      "mc.recraftors.dumpster.recipes.ShapedCraftingJsonParser",
+      "mc.recraftors.dumpster.recipes.ShapelessCraftingJsonParser",
+      "mc.recraftors.dumpster.recipes.SmeltingJsonParser",
+      "mc.recraftors.dumpster.recipes.SmithingJsonParser",
+      "mc.recraftors.dumpster.recipes.SmokingJsonParser",
+      "mc.recraftors.dumpster.recipes.StoneCuttingJsonParser"
+    ]
+  },
+  "mixins": [
+    "dumpster.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.14.7",
+    "minecraft": ">=1.19- <1.19.3-"
+  }
+}

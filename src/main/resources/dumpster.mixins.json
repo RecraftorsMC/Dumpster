@@ -1,0 +1,23 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "mc.recraftors.dumpster.mixins",
+  "compatibilityLevel": "JAVA_17",
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "client": [
+    "client.ClientCommandsInjector",
+    "client.ClientGameStartMixin",
+    "client.ClientPlayNetworkHandlerMixin"
+  ],
+  "server": [
+    "server.ServerCommandManagerMixin",
+    "server.ServerPlayerManagerMixin"
+  ],
+  "mixins": [
+    "RegistryMixin",
+    "accessor.CuttingRecipeMixin",
+    "accessor.SmithingRecipeMixin"
+  ]
+}
