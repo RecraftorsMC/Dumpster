@@ -11,6 +11,7 @@
     "sources": "https://github.com/RecraftorsMC/Dumpster",
     "issues": "https://github.com/RecraftorsMC/Dumpster/issues"
   },
+  "icon": "assets/dumpster.png",
   "license": "MIT",
   "environment": "*",
   "entrypoints": {
