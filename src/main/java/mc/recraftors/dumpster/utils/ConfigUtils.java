@@ -14,6 +14,7 @@ public final class ConfigUtils {
     private static final Properties PROPERTIES;
 
     private static final String FALSE = "false";
+    private static final String TRUE = "true";
     private static final String COMMENTS = """
             Properties file for the Dumpster mod
             Dumping can either be done automatically or via command ("/dump")
@@ -37,21 +38,21 @@ public final class ConfigUtils {
         defaults.setProperty(STARTUP_REG_DUMP, FALSE);
         defaults.setProperty(RELOAD_REG_DUMP, FALSE);
         defaults.setProperty(RELOAD_DATA_DUMP, FALSE);
-        defaults.setProperty(DATA_DUMP_TAGS, FALSE);
-        defaults.setProperty(DATA_DUMP_RECIPES, FALSE);
+        defaults.setProperty(DATA_DUMP_TAGS, TRUE);
+        defaults.setProperty(DATA_DUMP_RECIPES, TRUE);
         defaults.setProperty(DUMP_MAIN_FOLDER, "dump");
         defaults.setProperty(DUMP_ORG_DATE, FALSE);
-        defaults.setProperty(DUMP_ORG_TYPE, "true");
+        defaults.setProperty(DUMP_ORG_TYPE, TRUE);
 
         PROPERTIES = new Properties(defaults);
         PROPERTIES.setProperty(STARTUP_REG_DUMP, FALSE);
         PROPERTIES.setProperty(RELOAD_REG_DUMP, FALSE);
         PROPERTIES.setProperty(RELOAD_DATA_DUMP, FALSE);
-        PROPERTIES.setProperty(DATA_DUMP_TAGS, FALSE);
-        PROPERTIES.setProperty(DATA_DUMP_RECIPES, FALSE);
+        PROPERTIES.setProperty(DATA_DUMP_TAGS, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_RECIPES, TRUE);
         PROPERTIES.setProperty(DUMP_MAIN_FOLDER, "dump");
         PROPERTIES.setProperty(DUMP_ORG_DATE, FALSE);
-        PROPERTIES.setProperty(DUMP_ORG_TYPE, "true");
+        PROPERTIES.setProperty(DUMP_ORG_TYPE, TRUE);
 
         try {
             if (!(Files.exists(PATH) && Files.isRegularFile(PATH) && Files.isReadable(PATH))) {
