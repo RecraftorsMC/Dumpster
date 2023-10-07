@@ -29,3 +29,42 @@ This mod is not meant to be used for regular gaming! It is solely intended as a 
 ## Compatibility
 
 This mod is not able to process modded  recipes by default. Thus, a compatibility layer must be implemented, either on the side of the mod adding the recipe type, or by some third-party mod that intends to add it.
+
+### How to implement compatibility
+
+You may import this mod in your Gradle project using the Modrinth maven API, as per indicated in [the documentation](https://docs.modrinth.com/maven).
+
+You may then implement the [RecipeJsonParser](https://github.com/RecraftorsMC/Dumpster/blob/main/src/main/java/mc/recraftors/dumpster/recipes/RecipeJsonParser.java) interface in a class and register it as a `recipe-dump` entry-point as shown in the base [fabric.mod.json](https://github.com/RecraftorsMC/Dumpster/blob/dbb8bbc4d9bc2516854b2e88fca182c137aad875/src/main/resources/fabric.mod.json#L24) file.
+
+You shall also annotate it with the [TargetRecipeType](https://github.com/RecraftorsMC/Dumpster/blob/main/src/main/java/mc/recraftors/dumpster/recipes/TargetRecipeType.java) annotation, in order to indicate what recipe you are actually registering it for. You may as well indicate a priority value, if you want to overhaul another parser, by providing it a higher value.
+
+And that is all you have to do.
+
+All in all, your recipe dump class shall resemble the following (using Yarn mappings):
+```java
+import com.google.gson.JsonObject;
+import mc.recraftors.dumpster.recipes.RecipeJsonParser;
+import mc.recraftors.dumpster.recipes.TargetRecipeType;
+import net.minecraft.recipe.Recipe;
+
+@TargetRecipeType("mymod:myrecipetype")
+public class MyRecipeTypeJsonParser {
+    private MyRecipe recipe;
+
+    @Override
+    public boolean isSpecial() {
+        return false;
+    }
+
+    @Override
+    public void in(Recipe<?> recipe) {
+        if (recipe instanceof MyRecipe myRecipe) {
+            this.recipe = myRecipe;
+        }
+    }
+
+    @Override
+    public JsonObject toJson() {
+        // implement your parsing method here
+    }
+```
