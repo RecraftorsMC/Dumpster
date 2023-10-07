@@ -8,6 +8,8 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.world.World;
 
+import java.time.LocalDateTime;
+
 import static com.mojang.brigadier.builder.LiteralArgumentBuilder.*;
 
 public final class ServerDumpCommand {
@@ -25,7 +27,8 @@ public final class ServerDumpCommand {
 
     private static int dumpAll(CommandContext<ServerCommandSource> context) {
         World w = context.getSource().getWorld();
-        int n = Utils.dumpRegistries() + Utils.dumpData(w);
+        LocalDateTime now = LocalDateTime.now();
+        int n = Utils.dumpRegistries(now) + Utils.dumpData(w, now);
         if (n > 0) {
             error(n, context.getSource());
         } else success(context.getSource());
@@ -34,7 +37,7 @@ public final class ServerDumpCommand {
 
     private static int dumpData(CommandContext<ServerCommandSource> context) {
         ServerCommandSource source = context.getSource();
-        int n = Utils.dumpData(source.getWorld());
+        int n = Utils.dumpData(source.getWorld(), LocalDateTime.now());
         if (n > 0) {
             error(n, source);
         } else success(source);
@@ -42,7 +45,7 @@ public final class ServerDumpCommand {
     }
 
     private static int dumpReg(CommandContext<ServerCommandSource> context) {
-        int n = Utils.dumpRegistries();
+        int n = Utils.dumpRegistries(LocalDateTime.now());
         if (n > 0) {
             error(n, context.getSource());
         } else success(context.getSource());

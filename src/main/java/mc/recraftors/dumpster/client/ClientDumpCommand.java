@@ -12,6 +12,7 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static mc.recraftors.dumpster.client.ClientLiteralArgumentBuilder.literal;
@@ -30,7 +31,8 @@ public final class ClientDumpCommand {
     private static int dumpAll(CommandContext<ClientCommandSource> context) {
         RegistryKey<World> key = context.getSource().getWorldKeys().iterator().next();
         World world = (World) Registry.REGISTRIES.get(key.getValue()).iterator().next();
-        int n = Utils.dumpRegistries() + Utils.dumpData(world);
+        LocalDateTime now = LocalDateTime.now();
+        int n = Utils.dumpRegistries(now) + Utils.dumpData(world, now);
         if (n > 0) {
             toastError(n);
         }
@@ -40,7 +42,8 @@ public final class ClientDumpCommand {
     private static int dumpData(CommandContext<ClientCommandSource> context) {
         RegistryKey<World> key = context.getSource().getWorldKeys().iterator().next();
         World world = (World) Registry.REGISTRIES.get(key.getValue()).iterator().next();
-        int n = Utils.dumpData(world);
+        LocalDateTime now = LocalDateTime.now();
+        int n = Utils.dumpData(world, now);
         if (n > 0) {
             toastError(n);
         }
@@ -48,7 +51,7 @@ public final class ClientDumpCommand {
     }
 
     private static int dumpReg(CommandContext<ClientCommandSource> context) {
-        int n = Utils.dumpRegistries();
+        int n = Utils.dumpRegistries(LocalDateTime.now());
         if (n > 0) {
             toastError(n);
         }

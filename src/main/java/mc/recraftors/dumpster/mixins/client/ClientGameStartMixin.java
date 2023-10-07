@@ -11,13 +11,15 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.time.LocalDateTime;
+
 @Environment(EnvType.CLIENT)
 @Mixin(MinecraftClient.class)
 public abstract class ClientGameStartMixin {
     @Inject(method = "<init>", at = @At("TAIL"))
     private void afterBuildInjector(RunArgs args, CallbackInfo ci) {
         if (ConfigUtils.doAutoDumpRegistriesOnStartup()) {
-            Utils.dumpRegistries();
+            Utils.dumpRegistries(LocalDateTime.now());
         }
     }
 }

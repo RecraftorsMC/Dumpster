@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 @Environment(EnvType.SERVER)
 @Mixin(PlayerManager.class)
@@ -21,16 +22,17 @@ public abstract class ServerPlayerManagerMixin {
 
     @Inject(method = "onDataPacksReloaded", at = @At("TAIL"))
     private void datapackReloadTailInjector(CallbackInfo ci) {
+        LocalDateTime now = LocalDateTime.now();
         try {
             ConfigUtils.reload();
         } catch (IOException e) {
             Utils.LOGGER.error("An exception occurred while trying to reload the config", e);
         }
         if (ConfigUtils.doAutoDumpRegistriesOnReload()) {
-            Utils.dumpRegistries();
+            Utils.dumpRegistries(now);
         }
         if (ConfigUtils.doAutoDumpResourcesOnReload()) {
-            Utils.dumpData(this.getServer().getOverworld());
+            Utils.dumpData(this.getServer().getOverworld(), now);
         }
     }
 }

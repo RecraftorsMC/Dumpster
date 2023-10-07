@@ -16,7 +16,11 @@ public final class FileUtils {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     public static String getNow() {
-        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("uuuu-MM-dd-kk-mm-ss"));
+        return getNow(LocalDateTime.now());
+    }
+
+    public static String getNow(LocalDateTime now) {
+        return now.format(DateTimeFormatter.ofPattern("uuuu-MM-dd-kk-mm-ss"));
     }
 
     public static String singleNameIdPath(Identifier id) {
@@ -27,7 +31,7 @@ public final class FileUtils {
             throws IOException {
         File f = new File(folder);
         Files.createDirectories(f.toPath());
-        String s = String.format("%s-%s.json", Utils.normalizeId(name), getNow());
+        String s = String.format("%s.json", Utils.normalizeId(name));
         File target = new File(f,s);
         Files.createDirectories(target.getParentFile().toPath());
         FileWriter writer = new FileWriter(target);
@@ -41,11 +45,11 @@ public final class FileUtils {
         writer.close();
     }
 
-    static void storeTag(Collection<RegistryEntry> entries, Identifier id, Identifier name, AtomicInteger i) {
+    static void storeTag(Collection<RegistryEntry> entries, Identifier id, Identifier name, LocalDateTime now, AtomicInteger i) {
         try {
             StringBuilder builder = new StringBuilder(ConfigUtils.dumpFileMainFolder());
             if (ConfigUtils.doDumpFileOrganizeFolderByDate()) {
-                builder.append(File.separator).append(getNow());
+                builder.append(File.separator).append(getNow(now));
             }
             builder.append(File.separator).append("tags");
             if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
@@ -59,11 +63,11 @@ public final class FileUtils {
         }
     }
 
-    static void storeRecipe(JsonObject object, Identifier id, Identifier type, boolean isSpecial, AtomicInteger i) {
+    static void storeRecipe(JsonObject object, Identifier id, Identifier type, LocalDateTime now, boolean isSpecial, AtomicInteger i) {
         try {
             StringBuilder builder = new StringBuilder(ConfigUtils.dumpFileMainFolder());
             if (ConfigUtils.doDumpFileOrganizeFolderByDate()) {
-                builder.append(File.separator).append(getNow());
+                builder.append(File.separator).append(getNow(now));
             }
             builder.append(File.separator).append("recipes");
             if (isSpecial) {

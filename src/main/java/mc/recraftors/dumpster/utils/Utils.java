@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -48,7 +49,7 @@ public final class Utils {
         REGISTRIES.add(reg);
     }
 
-    public static int dumpRegistries() {
+    public static int dumpRegistries(LocalDateTime now) {
         AtomicInteger i = new AtomicInteger();
         for (Registry<?> reg : REGISTRIES) {
             if (reg == null) {
@@ -64,10 +65,11 @@ public final class Utils {
                 entries.add(r);
             });
             try {
-                String folder = ConfigUtils.dumpFileMainFolder() + File.separator + "registries";
+                String folder = ConfigUtils.dumpFileMainFolder();
                 if (ConfigUtils.doDumpFileOrganizeFolderByDate()) {
-                    folder += File.separator + FileUtils.getNow();
+                    folder += File.separator + FileUtils.getNow(now);
                 }
+                folder += File.separator + "registries";
                 if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
                     folder += File.separator + normalizeIdPath(reg.getKey().getValue());
                 }
@@ -93,7 +95,7 @@ public final class Utils {
                         String s = entry.getKey().get().toString();
                         entries.add(new RegistryEntry(v, tClass, s));
                     });
-                    FileUtils.storeTag(entries, reg.getKey().getValue(), id, i);
+                    FileUtils.storeTag(entries, reg.getKey().getValue(), id, LocalDateTime.now(), i);
                 });
             } catch (IllegalStateException e) {
                 i.incrementAndGet();
@@ -101,7 +103,7 @@ public final class Utils {
         }
     }
 
-    private static void dumpRecipes(World world, AtomicInteger i) {
+    private static void dumpRecipes(World world, LocalDateTime now, AtomicInteger i) {
         Set<Identifier> unparsableTypes = new HashSet<>();
         Set<Identifier> erroredRecipes = new HashSet<>();
         world.getRecipeManager().values().forEach(recipe -> {
@@ -117,7 +119,7 @@ public final class Utils {
                 if (o == null) {
                     erroredRecipes.add(recipe.getId());
                 }
-                FileUtils.storeRecipe(o, recipe.getId(), id, parser.isSpecial(), i);
+                FileUtils.storeRecipe(o, recipe.getId(), id, now, parser.isSpecial(), i);
             } catch (Exception e) {
                 erroredRecipes.add(recipe.getId());
             }
@@ -127,13 +129,13 @@ public final class Utils {
         i.addAndGet(erroredRecipes.size() + unparsableTypes.size());
     }
 
-    public static int dumpData(World world) {
+    public static int dumpData(World world, LocalDateTime now) {
         AtomicInteger i = new AtomicInteger();
         if (ConfigUtils.doDataDumpTags()) {
             dumpTags(world, i);
         }
         if (ConfigUtils.doDataDumpRecipes()) {
-            dumpRecipes(world, i);
+            dumpRecipes(world, now, i);
         }
         return i.get();
     }

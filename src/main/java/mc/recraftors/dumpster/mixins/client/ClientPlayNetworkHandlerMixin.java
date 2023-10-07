@@ -13,6 +13,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.time.LocalDateTime;
+
 @Environment(EnvType.CLIENT)
 @Mixin(ClientPlayNetworkHandler.class)
 public abstract class ClientPlayNetworkHandlerMixin {
@@ -21,10 +23,10 @@ public abstract class ClientPlayNetworkHandlerMixin {
     @Inject(method = "onSynchronizeRecipes", at = @At("TAIL"))
     private void onSynchronizedRecipesTailInjector(SynchronizeRecipesS2CPacket packet, CallbackInfo ci) {
         if (ConfigUtils.doAutoDumpResourcesOnReload()) {
-            Utils.dumpData(this.getWorld());
+            Utils.dumpData(this.getWorld(), LocalDateTime.now());
         }
         if (ConfigUtils.doAutoDumpRegistriesOnReload()) {
-            Utils.dumpRegistries();
+            Utils.dumpRegistries(LocalDateTime.now());
         }
     }
 }
