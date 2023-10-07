@@ -109,8 +109,12 @@ public final class ConfigUtils {
 
     public static boolean reload() throws IOException {
         boolean b = Files.exists(PATH) && Files.isRegularFile(PATH) && Files.isReadable(PATH);
-        try (FileReader reader = new FileReader(PATH.toFile())) {
-            PROPERTIES.load(reader);
+        if (!b) {
+            try (FileReader reader = new FileReader(PATH.toFile())) {
+                PROPERTIES.load(reader);
+            }
+        } else {
+            save();
         }
         validateTargetPath();
         return b;

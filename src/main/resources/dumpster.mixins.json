@@ -18,6 +18,7 @@
   "mixins": [
     "RegistryMixin",
     "accessor.CuttingRecipeMixin",
+    "accessor.LootTableMixin",
     "accessor.SmithingRecipeMixin"
   ]
 }
