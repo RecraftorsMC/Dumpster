@@ -49,7 +49,7 @@ public final class FileUtils {
             }
             builder.append(File.separator).append("tags");
             if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
-                builder.append(File.separator).append(singleNameIdPath(name));
+                builder.append(File.separator).append(name.getNamespace());
             }
             builder.append(File.separator).append(Utils.normalizeIdPath(id));
             writeEntries(builder.toString(), name, entries);

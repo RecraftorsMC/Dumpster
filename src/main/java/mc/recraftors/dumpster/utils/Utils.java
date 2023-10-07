@@ -90,11 +90,11 @@ public final class Utils {
             });
             try {
                 String folder = ConfigUtils.dumpFileMainFolder() + File.separator + "registries";
-                if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
-                    folder += File.separator + normalizeIdPath(reg.getKey().getValue());
-                }
                 if (ConfigUtils.doDumpFileOrganizeFolderByDate()) {
                     folder += File.separator + FileUtils.getNow();
+                }
+                if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
+                    folder += File.separator + normalizeIdPath(reg.getKey().getValue());
                 }
                 FileUtils.writeEntries(folder, reg.getKey().getValue(), entries);
             } catch (IOException e) {
@@ -147,6 +147,8 @@ public final class Utils {
                 erroredRecipes.add(recipe.getId());
             }
         });
+        unparsableTypes.forEach(e -> LOGGER.error("Unable to parse recipes of type {}", e));
+        erroredRecipes.forEach(e -> LOGGER.error("An error occurred while trying to dump recipe {}", e));
         i.addAndGet(erroredRecipes.size() + unparsableTypes.size());
     }
 

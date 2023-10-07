@@ -35,10 +35,9 @@ public abstract class AbstractCookingJsonParser implements RecipeJsonParser {
         main.add("type", new JsonPrimitive(this.type));
         RecipeJsonParser.addGroup(main, recipe);
         main.add("ingredient", recipe.getIngredients().get(0).toJson());
-        JsonObject res = new JsonObject();
-        res.add("result", new JsonPrimitive(Registry.ITEM.getId(recipe.getOutput().getItem()).toString()));
-        res.add("experience", new JsonPrimitive(recipe.getExperience()));
-        res.add("cookingtime", new JsonPrimitive(recipe.getCookTime()));
+        main.add("result", new JsonPrimitive(Registry.ITEM.getId(recipe.getOutput().getItem()).toString()));
+        main.add("experience", new JsonPrimitive(recipe.getExperience()));
+        main.add("cookingtime", new JsonPrimitive(recipe.getCookTime()));
         return main;
     }
 }

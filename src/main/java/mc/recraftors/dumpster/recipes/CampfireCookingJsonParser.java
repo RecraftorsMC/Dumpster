@@ -1,5 +1,6 @@
 package mc.recraftors.dumpster.recipes;
 
+import net.minecraft.recipe.CampfireCookingRecipe;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.SmeltingRecipe;
 
@@ -13,7 +14,7 @@ public final class CampfireCookingJsonParser extends AbstractCookingJsonParser {
 
     @Override
     public void in(Recipe<?> recipe) {
-        if (recipe instanceof SmeltingRecipe s) {
+        if (recipe instanceof CampfireCookingRecipe s) {
             take(s);
         }
     }

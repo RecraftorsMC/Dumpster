@@ -1,6 +1,6 @@
 package mc.recraftors.dumpster.mixins.accessor;
 
-import mc.recraftors.dumpster.utils.accessors.SmithingRecipeAccessor;
+import mc.recraftors.dumpster.utils.accessors.SmithingRecipeParamsAccessor;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.SmithingRecipe;
 import org.spongepowered.asm.mixin.Final;
@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(SmithingRecipe.class)
-public abstract class SmithingRecipeMixin implements SmithingRecipeAccessor {
+public abstract class SmithingRecipeMixin implements SmithingRecipeParamsAccessor {
     @Shadow @Final Ingredient base;
 
     @Shadow @Final Ingredient addition;
