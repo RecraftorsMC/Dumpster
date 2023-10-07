@@ -2,6 +2,7 @@ package mc.recraftors.dumpster.mixins.server;
 
 import com.mojang.brigadier.CommandDispatcher;
 import mc.recraftors.dumpster.server.ServerDumpCommand;
+import mc.recraftors.dumpster.utils.FileUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.command.CommandRegistryAccess;
@@ -21,6 +22,7 @@ public abstract class ServerCommandManagerMixin {
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void initTailInjector(CommandManager.RegistrationEnvironment e, CommandRegistryAccess c, CallbackInfo ci) {
+        FileUtils.clearIfNeeded();
         ServerDumpCommand.register(dispatcher);
     }
 }

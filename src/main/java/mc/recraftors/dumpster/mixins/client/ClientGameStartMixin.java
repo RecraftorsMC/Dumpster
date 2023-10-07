@@ -1,6 +1,7 @@
 package mc.recraftors.dumpster.mixins.client;
 
 import mc.recraftors.dumpster.utils.ConfigUtils;
+import mc.recraftors.dumpster.utils.FileUtils;
 import mc.recraftors.dumpster.utils.Utils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -19,6 +20,7 @@ public abstract class ClientGameStartMixin {
     @Inject(method = "<init>", at = @At("TAIL"))
     private void afterBuildInjector(RunArgs args, CallbackInfo ci) {
         if (ConfigUtils.doAutoDumpRegistriesOnStartup()) {
+            FileUtils.clearIfNeeded();
             Utils.dumpRegistries(LocalDateTime.now());
         }
     }

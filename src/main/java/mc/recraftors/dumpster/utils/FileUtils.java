@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
@@ -25,6 +26,21 @@ public final class FileUtils {
 
     public static String singleNameIdPath(Identifier id) {
         return id.getNamespace() + "_" + String.join("-", id.getPath().split("/"));
+    }
+
+    public static void clearIfNeeded() {
+        Path path = Path.of("dump");
+        try {
+            if (ConfigUtils.doDumpFileClearBeforeDump() && Files.exists(path)) {
+                if (Files.isDirectory(path)) {
+                    for (Path c : Files.list(path).toList()) {
+                        Files.delete(c);
+                    }
+                } else Files.delete(path);
+            }
+        } catch (IOException e) {
+            Utils.LOGGER.error("An error occurred trying to clear previous dump files", e);
+        }
     }
 
     public static void writeEntries(String folder, Identifier name, Collection<RegistryEntry> entries)

@@ -1,6 +1,7 @@
 package mc.recraftors.dumpster.mixins.client;
 
 import mc.recraftors.dumpster.utils.ConfigUtils;
+import mc.recraftors.dumpster.utils.FileUtils;
 import mc.recraftors.dumpster.utils.Utils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -22,10 +23,13 @@ public abstract class ClientPlayNetworkHandlerMixin {
 
     @Inject(method = "onSynchronizeRecipes", at = @At("TAIL"))
     private void onSynchronizedRecipesTailInjector(SynchronizeRecipesS2CPacket packet, CallbackInfo ci) {
-        if (ConfigUtils.doAutoDumpResourcesOnReload()) {
+        boolean b1 = ConfigUtils.doAutoDumpResourcesOnReload();
+        boolean b2 = ConfigUtils.doAutoDumpRegistriesOnReload();
+        if (b1 || b2) FileUtils.clearIfNeeded();
+        if (b1) {
             Utils.dumpData(this.getWorld(), LocalDateTime.now());
         }
-        if (ConfigUtils.doAutoDumpRegistriesOnReload()) {
+        if (b2) {
             Utils.dumpRegistries(LocalDateTime.now());
         }
     }

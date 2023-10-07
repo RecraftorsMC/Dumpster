@@ -1,6 +1,7 @@
 package mc.recraftors.dumpster.mixins.server;
 
 import mc.recraftors.dumpster.utils.ConfigUtils;
+import mc.recraftors.dumpster.utils.FileUtils;
 import mc.recraftors.dumpster.utils.Utils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -28,10 +29,13 @@ public abstract class ServerPlayerManagerMixin {
         } catch (IOException e) {
             Utils.LOGGER.error("An exception occurred while trying to reload the config", e);
         }
-        if (ConfigUtils.doAutoDumpRegistriesOnReload()) {
+        boolean b1 = ConfigUtils.doAutoDumpResourcesOnReload();
+        boolean b2 = ConfigUtils.doAutoDumpRegistriesOnReload();
+        if (b1 || b2) FileUtils.clearIfNeeded();
+        if (b1) {
             Utils.dumpRegistries(now);
         }
-        if (ConfigUtils.doAutoDumpResourcesOnReload()) {
+        if (b2) {
             Utils.dumpData(this.getServer().getOverworld(), now);
         }
     }

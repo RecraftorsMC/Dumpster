@@ -3,6 +3,7 @@ package mc.recraftors.dumpster.client;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.CommandNode;
+import mc.recraftors.dumpster.utils.FileUtils;
 import mc.recraftors.dumpster.utils.Utils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientCommandSource;
@@ -29,6 +30,7 @@ public final class ClientDumpCommand {
     }
 
     private static int dumpAll(CommandContext<ClientCommandSource> context) {
+        FileUtils.clearIfNeeded();
         RegistryKey<World> key = context.getSource().getWorldKeys().iterator().next();
         World world = (World) Registry.REGISTRIES.get(key.getValue()).iterator().next();
         LocalDateTime now = LocalDateTime.now();
@@ -40,6 +42,7 @@ public final class ClientDumpCommand {
     }
 
     private static int dumpData(CommandContext<ClientCommandSource> context) {
+        FileUtils.clearIfNeeded();
         RegistryKey<World> key = context.getSource().getWorldKeys().iterator().next();
         World world = (World) Registry.REGISTRIES.get(key.getValue()).iterator().next();
         LocalDateTime now = LocalDateTime.now();
@@ -51,6 +54,7 @@ public final class ClientDumpCommand {
     }
 
     private static int dumpReg(CommandContext<ClientCommandSource> context) {
+        FileUtils.clearIfNeeded();
         int n = Utils.dumpRegistries(LocalDateTime.now());
         if (n > 0) {
             toastError(n);
