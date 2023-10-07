@@ -24,6 +24,7 @@ public final class ConfigUtils {
     private static final String RELOAD_DATA_DUMP = "autoDumpResources.onReload";
     private static final String DATA_DUMP_TAGS = "dump.data.dumpTags";
     private static final String DATA_DUMP_RECIPES = "dump.data.dumpRecipes";
+    private static final String DATA_DUMP_LOOT_TABLES = "dump.data.dumpLootTables";
     private static final String DUMP_MAIN_FOLDER = "dumpFile.mainFolder";
     private static final String DUMP_ORG_DATE = "dumpFile.organizeFolderByDate";
     private static final String DUMP_ORG_TYPE = "dumpFile.organizeFolderByType";
@@ -40,6 +41,7 @@ public final class ConfigUtils {
         defaults.setProperty(RELOAD_DATA_DUMP, FALSE);
         defaults.setProperty(DATA_DUMP_TAGS, TRUE);
         defaults.setProperty(DATA_DUMP_RECIPES, TRUE);
+        defaults.setProperty(DATA_DUMP_LOOT_TABLES, TRUE);
         defaults.setProperty(DUMP_MAIN_FOLDER, "dump");
         defaults.setProperty(DUMP_ORG_DATE, FALSE);
         defaults.setProperty(DUMP_ORG_TYPE, TRUE);
@@ -50,6 +52,7 @@ public final class ConfigUtils {
         PROPERTIES.setProperty(RELOAD_DATA_DUMP, FALSE);
         PROPERTIES.setProperty(DATA_DUMP_TAGS, TRUE);
         PROPERTIES.setProperty(DATA_DUMP_RECIPES, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_LOOT_TABLES, TRUE);
         PROPERTIES.setProperty(DUMP_MAIN_FOLDER, "dump");
         PROPERTIES.setProperty(DUMP_ORG_DATE, FALSE);
         PROPERTIES.setProperty(DUMP_ORG_TYPE, TRUE);
@@ -86,6 +89,10 @@ public final class ConfigUtils {
 
     public static boolean doDataDumpRecipes() {
         return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_RECIPES));
+    }
+
+    public static boolean doDumpLootTables() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_LOOT_TABLES));
     }
 
     public static String dumpFileMainFolder() {

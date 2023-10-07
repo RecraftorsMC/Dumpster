@@ -4,6 +4,9 @@ import com.google.gson.JsonObject;
 import mc.recraftors.dumpster.recipes.RecipeJsonParser;
 import mc.recraftors.dumpster.recipes.TargetRecipeType;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.loot.LootManager;
+import net.minecraft.loot.LootTable;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
@@ -125,6 +128,14 @@ public final class Utils {
         i.addAndGet(erroredRecipes.size() + unparsableTypes.size());
     }
 
+    private static void dumpLootTables(ServerWorld world, AtomicInteger i) {
+        LootManager manager = world.getServer().getLootManager();
+        manager.getTableIds().forEach(id -> {
+            LootTable table = manager.getTable(id);
+            //TODO: implement loot context parsing system similar to the recipe one
+        });
+    }
+
     public static int dumpData(World world) {
         AtomicInteger i = new AtomicInteger();
         if (ConfigUtils.doDataDumpTags()) {
@@ -132,6 +143,9 @@ public final class Utils {
         }
         if (ConfigUtils.doDataDumpRecipes()) {
             dumpRecipes(world, i);
+        }
+        if (ConfigUtils.doDumpLootTables() && world instanceof ServerWorld s) {
+            dumpLootTables(s, i);
         }
         return i.get();
     }
