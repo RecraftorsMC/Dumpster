@@ -25,23 +25,23 @@ public final class Utils {
     private static final Map<Identifier, RecipeJsonParser> RECIPE_PARSERS;
 
     static {
-        Map<Identifier, RecipeJsonParser> parserMap = new HashMap<>();
+        Map<Identifier, RecipeJsonParser> recipeParserMap = new HashMap<>();
         FabricLoader.getInstance().getEntrypoints("recipe-dump", RecipeJsonParser.class).forEach(e -> {
             if (!e.getClass().isAnnotationPresent(TargetRecipeType.class)) return;
             TargetRecipeType type = e.getClass().getAnnotation(TargetRecipeType.class);
             Identifier id = Identifier.tryParse(type.value());
             if (id == null) return;
-            if (parserMap.containsKey(id)) {
-                RecipeJsonParser o = parserMap.get(id);
+            if (recipeParserMap.containsKey(id)) {
+                RecipeJsonParser o = recipeParserMap.get(id);
                 if (!o.getClass().isAnnotationPresent(TargetRecipeType.class)) return;
                 if (o.getClass().getAnnotation(TargetRecipeType.class).priority() < type.priority()){
-                    parserMap.put(id, e);
+                    recipeParserMap.put(id, e);
                 }
             } else {
-                parserMap.put(id, e);
+                recipeParserMap.put(id, e);
             }
         });
-        RECIPE_PARSERS = parserMap;
+        RECIPE_PARSERS = recipeParserMap;
     }
 
     public static void reg(Registry<?> reg) {
@@ -65,11 +65,11 @@ public final class Utils {
             });
             try {
                 String folder = ConfigUtils.dumpFileMainFolder() + File.separator + "registries";
-                if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
-                    folder += File.separator + normalizeIdPath(reg.getKey().getValue());
-                }
                 if (ConfigUtils.doDumpFileOrganizeFolderByDate()) {
                     folder += File.separator + FileUtils.getNow();
+                }
+                if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
+                    folder += File.separator + normalizeIdPath(reg.getKey().getValue());
                 }
                 FileUtils.writeEntries(folder, reg.getKey().getValue(), entries);
             } catch (IOException e) {
@@ -122,6 +122,8 @@ public final class Utils {
                 erroredRecipes.add(recipe.getId());
             }
         });
+        unparsableTypes.forEach(e -> LOGGER.error("Unable to parse recipes of type {}", e));
+        erroredRecipes.forEach(e -> LOGGER.error("An error occurred while trying to dump recipe {}", e));
         i.addAndGet(erroredRecipes.size() + unparsableTypes.size());
     }
 
