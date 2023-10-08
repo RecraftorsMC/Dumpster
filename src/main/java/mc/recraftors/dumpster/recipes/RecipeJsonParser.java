@@ -10,7 +10,10 @@ public interface RecipeJsonParser extends Objectable {
     /**
      * Puts in the specified recipe of theoretically matching type,
      * to be parsed as JSON with the {@link #toJson()} method.
+     * <p>
+     * Returns whether the provided recipe was accepted
      * @param recipe The recipe to take in.
+     * @return Whether the provided recipe was accepted
      */
     boolean in(Recipe<?> recipe);
 
