@@ -2,8 +2,11 @@ package mc.recraftors.dumpster.utils;
 
 import com.google.gson.JsonObject;
 import mc.recraftors.dumpster.recipes.RecipeJsonParser;
+import mc.recraftors.dumpster.recipes.ShapedCraftingJsonParser;
+import mc.recraftors.dumpster.recipes.ShapelessCraftingJsonParser;
 import mc.recraftors.dumpster.recipes.TargetRecipeType;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.recipe.RecipeType;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
@@ -115,12 +118,21 @@ public final class Utils {
         Set<Identifier> erroredRecipes = new HashSet<>();
         world.getRecipeManager().values().forEach(recipe -> {
             Identifier id = Registry.RECIPE_TYPE.getId(recipe.getType());
+            RecipeJsonParser parser = RECIPE_PARSERS.get(id);
             if (!RECIPE_PARSERS.containsKey(id)) {
-                unparsableTypes.add(id);
-                return;
+                if (id == null) {
+                    return;
+                }
+                if (id.equals(Registry.RECIPE_TYPE.getId(RecipeType.CRAFTING))) {
+                    if (RECIPE_PARSERS.get(new Identifier(ShapedCraftingJsonParser.TYPE)).in(recipe)) {
+                        parser = RECIPE_PARSERS.get(new Identifier(ShapedCraftingJsonParser.TYPE));
+                    } else parser = RECIPE_PARSERS.get(new Identifier(ShapelessCraftingJsonParser.TYPE));
+                } else {
+                    unparsableTypes.add(id);
+                    return;
+                }
             }
             try {
-                RecipeJsonParser parser = RECIPE_PARSERS.get(id);
                 parser.in(recipe);
                 JsonObject o = parser.toJson();
                 if (o == null) {

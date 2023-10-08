@@ -12,9 +12,11 @@ public final class BlastingJsonParser extends AbstractCookingJsonParser {
     }
 
     @Override
-    public void in(Recipe<?> recipe) {
+    public boolean in(Recipe<?> recipe) {
         if (recipe instanceof BlastingRecipe r) {
             take(r);
+            return true;
         }
+        return false;
     }
 }
