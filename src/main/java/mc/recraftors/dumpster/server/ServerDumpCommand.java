@@ -3,6 +3,7 @@ package mc.recraftors.dumpster.server;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import mc.recraftors.dumpster.utils.ConfigUtils;
 import mc.recraftors.dumpster.utils.Utils;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
@@ -10,19 +11,22 @@ import net.minecraft.world.World;
 
 import java.time.LocalDateTime;
 
-import static com.mojang.brigadier.builder.LiteralArgumentBuilder.*;
+import static mc.recraftors.dumpster.server.ServerLiteralArgumentBuilder.literal;
 
 public final class ServerDumpCommand {
-    @SuppressWarnings("unchecked")
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(((LiteralArgumentBuilder<ServerCommandSource>) (Object) literal("dump"))
+        LiteralArgumentBuilder<ServerCommandSource> builder = literal("dump")
                 .requires(s -> s.hasPermissionLevel(2))
                 .executes(ServerDumpCommand::dumpAll)
-                .then(((LiteralArgumentBuilder<ServerCommandSource>) (Object)literal("data"))
+                .then(literal("data")
                         .executes(ServerDumpCommand::dumpData))
-                .then(((LiteralArgumentBuilder<ServerCommandSource>) (Object)literal("registries"))
-                        .executes(ServerDumpCommand::dumpReg))
-        );
+                .then(literal("registries")
+                        .executes(ServerDumpCommand::dumpReg));
+        if (ConfigUtils.isDebugEnabled()) {
+            builder.then(literal("debug")
+                    .executes(ServerDumpCommand::debug));
+        }
+        dispatcher.register(builder);
     }
 
     private static int dumpAll(CommandContext<ServerCommandSource> context) {
@@ -50,6 +54,11 @@ public final class ServerDumpCommand {
             error(n, context.getSource());
         } else success(context.getSource());
         return n;
+    }
+
+    private static int debug(CommandContext<ServerCommandSource> context) {
+        Utils.debug();
+        return 0;
     }
 
     private static void error(int n, ServerCommandSource source) {

@@ -46,16 +46,16 @@ public final class Utils {
     }
 
     public static void reg(Registry<?> reg) {
+        if (reg == null) {
+            return;
+        }
         REGISTRIES.add(reg);
     }
 
     public static int dumpRegistries(LocalDateTime now) {
         AtomicInteger i = new AtomicInteger();
+        Set<Identifier> err = new HashSet<>();
         for (Registry<?> reg : REGISTRIES) {
-            if (reg == null) {
-                i.incrementAndGet();
-                continue;
-            }
             Collection<RegistryEntry> entries = new ArrayList<>();
             reg.getEntrySet().forEach(entry -> {
                 Identifier id = entry.getKey().getValue();
@@ -75,14 +75,19 @@ public final class Utils {
                 }
                 FileUtils.writeEntries(folder, reg.getKey().getValue(), entries);
             } catch (IOException e) {
+                err.add(reg.getKey().getValue());
                 LOGGER.error("An error occurred trying to dump registry {}", reg.getKey().getValue(), e);
                 i.incrementAndGet();
             }
         }
+        if (i.get() > 0) {
+            FileUtils.writeErrors(Map.of("Registries", err));
+        }
         return i.get();
     }
 
-    private static void dumpTags(World world, AtomicInteger i) {
+    private static Map<String, Set<Identifier>> dumpTags(World world, AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
         for (Registry<?> reg : REGISTRIES) {
             try {
                 world.getRegistryManager().get(reg.getKey()).streamTagsAndEntries().forEach(pair -> {
@@ -99,11 +104,13 @@ public final class Utils {
                 });
             } catch (IllegalStateException e) {
                 i.incrementAndGet();
+                err.add(reg.getKey().getValue());
             }
         }
+        return Map.of("Tags", err);
     }
 
-    private static void dumpRecipes(World world, LocalDateTime now, AtomicInteger i) {
+    private static Map<String, Set<Identifier>> dumpRecipes(World world, LocalDateTime now, AtomicInteger i) {
         Set<Identifier> unparsableTypes = new HashSet<>();
         Set<Identifier> erroredRecipes = new HashSet<>();
         world.getRecipeManager().values().forEach(recipe -> {
@@ -127,17 +134,30 @@ public final class Utils {
         unparsableTypes.forEach(e -> LOGGER.error("Unable to parse recipes of type {}", e));
         erroredRecipes.forEach(e -> LOGGER.error("An error occurred while trying to dump recipe {}", e));
         i.addAndGet(erroredRecipes.size() + unparsableTypes.size());
+        Map<String, Set<Identifier>> out = new HashMap<>();
+        if (!unparsableTypes.isEmpty()) out.put("Recipe Types", unparsableTypes);
+        if (!erroredRecipes.isEmpty()) out.put("Recipes", erroredRecipes);
+        return out;
     }
 
     public static int dumpData(World world, LocalDateTime now) {
         AtomicInteger i = new AtomicInteger();
+        Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
         if (ConfigUtils.doDataDumpTags()) {
-            dumpTags(world, i);
+            errMap.putAll(dumpTags(world, i));
         }
         if (ConfigUtils.doDataDumpRecipes()) {
-            dumpRecipes(world, now, i);
+            errMap.putAll(dumpRecipes(world, now, i));
+        }
+        if (i.get() > 0) {
+            FileUtils.writeErrors(errMap);
         }
         return i.get();
+    }
+
+    public static void debug() {
+        if (!ConfigUtils.isDebugEnabled()) return;
+        FileUtils.writeDebug(REGISTRIES, RECIPE_PARSERS);
     }
 
     public static String normalizeId(Identifier id) {

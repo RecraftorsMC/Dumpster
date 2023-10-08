@@ -1,7 +1,10 @@
 package mc.recraftors.dumpster.utils;
 
 import com.google.gson.*;
+import mc.recraftors.dumpster.recipes.RecipeJsonParser;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -10,8 +13,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 public final class FileUtils {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -21,7 +25,7 @@ public final class FileUtils {
     }
 
     public static String getNow(LocalDateTime now) {
-        return now.format(DateTimeFormatter.ofPattern("uuuu-MM-dd-kk-mm-ss"));
+        return now.format(DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm-ss"));
     }
 
     public static String singleNameIdPath(Identifier id) {
@@ -33,9 +37,11 @@ public final class FileUtils {
         try {
             if (ConfigUtils.doDumpFileClearBeforeDump() && Files.exists(path)) {
                 if (Files.isDirectory(path)) {
-                    for (Path c : Files.list(path).toList()) {
+                    Stream<Path> stream = Files.list(path);
+                    for (Path c : stream.toList()) {
                         Files.delete(c);
                     }
+                    stream.close();
                 } else Files.delete(path);
             }
         } catch (IOException e) {
@@ -102,6 +108,52 @@ public final class FileUtils {
         } catch (IOException e) {
             Utils.LOGGER.error("An error occurred trying to dump data {}", id);
             i.incrementAndGet();
+        }
+    }
+
+    static void writeErrors(Map<String, Set<Identifier>> setMap) {
+        try {
+            Path p = Path.of(ConfigUtils.dumpFileMainFolder(), "errors.txt");
+            Files.createDirectories(p.getParent());
+            FileWriter writer = new FileWriter(p.toFile(), true);
+            writer.write(String.format(" ======\tError report %s\t======", getNow()));
+            for (Map.Entry<String, Set<Identifier>> entry : setMap.entrySet()) {
+                writer.write(String.format("%n%n\t### %s ###", entry.getKey()));
+                for (Identifier id : entry.getValue()) {
+                    writer.write(String.format("%n\t - %s", id));
+                }
+            }
+            writer.write("\n\n");
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            Utils.LOGGER.error("An exception occurred trying to log dump errors", e);
+        }
+    }
+
+    static void writeDebug(@NotNull Collection<Registry<?>> registries, Map<Identifier, RecipeJsonParser> recipeParsers) {
+        try {
+            Path p = Path.of(ConfigUtils.dumpFileMainFolder(), "debug.txt");
+            Files.createDirectories(p.getParent());
+            FileWriter writer = new FileWriter(p.toFile(), true);
+            writer.write(String.format(" ======\tDebug report %s\t======%n", getNow()));
+            writer.write(String.format("%n\t### Registries ###%n"));
+            for (Registry<?> reg : registries.stream().sorted(Comparator.comparing(e -> e.getKey().getValue())).toList()) {
+                writer.write(String.format("%n\t - %s", reg.getKey().getValue()));
+            }
+            writer.write(String.format("%n%n\t### Recipe parsers ###%n"));
+            int min = 0;
+            for (Identifier id : recipeParsers.keySet()) {
+                min = Math.max(min, id.toString().length());
+            }
+            for (Map.Entry<Identifier, RecipeJsonParser> entry : recipeParsers.entrySet()) {
+                writer.write(String.format("%n\t - %-"+min+"s\t@\t%s", entry.getKey(), entry.getValue().getClass()));
+            }
+            writer.write("\n");
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            Utils.LOGGER.error("An error occurred trying to write {} debug", Utils.MOD_ID, e);
         }
     }
 
