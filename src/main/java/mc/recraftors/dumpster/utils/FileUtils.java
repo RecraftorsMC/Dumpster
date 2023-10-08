@@ -13,9 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -27,7 +25,7 @@ public final class FileUtils {
     }
 
     public static String getNow(LocalDateTime now) {
-        return now.format(DateTimeFormatter.ofPattern("uuuu-MM-dd-kk-mm-ss"));
+        return now.format(DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm-ss"));
     }
 
     public static String singleNameIdPath(Identifier id) {
@@ -138,14 +136,18 @@ public final class FileUtils {
             Path p = Path.of(ConfigUtils.dumpFileMainFolder(), "debug.txt");
             Files.createDirectories(p.getParent());
             FileWriter writer = new FileWriter(p.toFile(), true);
-            writer.write(String.format(" ======\tDebug report %s\t======", getNow()));
+            writer.write(String.format(" ======\tDebug report %s\t======%n", getNow()));
             writer.write(String.format("%n\t### Registries ###%n"));
-            for (Registry<?> reg : registries) {
-                writer.write(String.format("\t - %s%n", reg.getKey()));
+            for (Registry<?> reg : registries.stream().sorted(Comparator.comparing(e -> e.getKey().getValue())).toList()) {
+                writer.write(String.format("%n\t - %s", reg.getKey().getValue()));
             }
-            writer.write(String.format("%n\t### Recipe parsers ###%n"));
+            writer.write(String.format("%n%n\t### Recipe parsers ###%n"));
+            int min = 0;
+            for (Identifier id : recipeParsers.keySet()) {
+                min = Math.max(min, id.toString().length());
+            }
             for (Map.Entry<Identifier, RecipeJsonParser> entry : recipeParsers.entrySet()) {
-                writer.write(String.format("%n\t - %s @ %s", entry.getKey(), entry.getValue().getClass()));
+                writer.write(String.format("%n\t - %-"+min+"s\t@\t%s", entry.getKey(), entry.getValue().getClass()));
             }
             writer.write("\n");
             writer.flush();
