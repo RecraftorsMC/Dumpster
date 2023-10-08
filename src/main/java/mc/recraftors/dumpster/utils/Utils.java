@@ -134,7 +134,10 @@ public final class Utils {
         unparsableTypes.forEach(e -> LOGGER.error("Unable to parse recipes of type {}", e));
         erroredRecipes.forEach(e -> LOGGER.error("An error occurred while trying to dump recipe {}", e));
         i.addAndGet(erroredRecipes.size() + unparsableTypes.size());
-        return Map.of("Recipe Types", unparsableTypes, "Recipes", erroredRecipes);
+        Map<String, Set<Identifier>> out = new HashMap<>();
+        if (!unparsableTypes.isEmpty()) out.put("Recipe Types", unparsableTypes);
+        if (!erroredRecipes.isEmpty()) out.put("Recipes", erroredRecipes);
+        return out;
     }
 
     public static int dumpData(World world, LocalDateTime now) {

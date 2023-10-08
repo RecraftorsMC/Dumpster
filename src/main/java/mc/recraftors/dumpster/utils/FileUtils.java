@@ -123,7 +123,7 @@ public final class FileUtils {
                     writer.write(String.format("%n\t - %s", id));
                 }
             }
-            writer.write("\n");
+            writer.write("\n\n");
             writer.flush();
             writer.close();
         } catch (IOException e) {
