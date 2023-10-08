@@ -11,6 +11,8 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class FileUtils {
@@ -102,6 +104,26 @@ public final class FileUtils {
         } catch (IOException e) {
             Utils.LOGGER.error("An error occurred trying to dump data {}", id);
             i.incrementAndGet();
+        }
+    }
+
+    static void writeErrors(Map<String, Set<Identifier>> setMap) {
+        try {
+            Path p = Path.of(ConfigUtils.dumpFileMainFolder(), "errors.txt");
+            Files.createDirectories(p.getParent());
+            FileWriter writer = new FileWriter(p.toFile(), true);
+            writer.write(String.format(" ======\tError report %s\t======%n", getNow()));
+            for (Map.Entry<String, Set<Identifier>> entry : setMap.entrySet()) {
+                writer.write(String.format("%n%n\t### %s ###", entry.getKey()));
+                for (Identifier id : entry.getValue()) {
+                    writer.write(String.format("%n\t - %s", id));
+                }
+            }
+            writer.write("\n");
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            Utils.LOGGER.error("An exception occurred trying to log dump errors", e);
         }
     }
 
