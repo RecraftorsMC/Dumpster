@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 public final class FileUtils {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -35,9 +36,11 @@ public final class FileUtils {
         try {
             if (ConfigUtils.doDumpFileClearBeforeDump() && Files.exists(path)) {
                 if (Files.isDirectory(path)) {
-                    for (Path c : Files.list(path).toList()) {
+                    Stream<Path> stream = Files.list(path);
+                    for (Path c : stream.toList()) {
                         Files.delete(c);
                     }
+                    stream.close();
                 } else Files.delete(path);
             }
         } catch (IOException e) {
