@@ -10,19 +10,17 @@ import net.minecraft.world.World;
 
 import java.time.LocalDateTime;
 
-import static com.mojang.brigadier.builder.LiteralArgumentBuilder.*;
+import static mc.recraftors.dumpster.server.ServerLiteralArgumentBuilder.literal;
 
 public final class ServerDumpCommand {
-    @SuppressWarnings("unchecked")
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(((LiteralArgumentBuilder<ServerCommandSource>) (Object) literal("dump"))
+        dispatcher.register(literal("dump")
                 .requires(s -> s.hasPermissionLevel(2))
                 .executes(ServerDumpCommand::dumpAll)
-                .then(((LiteralArgumentBuilder<ServerCommandSource>) (Object)literal("data"))
+                .then(literal("data")
                         .executes(ServerDumpCommand::dumpData))
-                .then(((LiteralArgumentBuilder<ServerCommandSource>) (Object)literal("registries"))
-                        .executes(ServerDumpCommand::dumpReg))
-        );
+                .then(literal("registries")
+                        .executes(ServerDumpCommand::dumpReg)));
     }
 
     private static int dumpAll(CommandContext<ServerCommandSource> context) {
