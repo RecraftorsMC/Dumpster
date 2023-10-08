@@ -21,10 +21,12 @@ public final class ShapedCraftingJsonParser implements RecipeJsonParser {
     }
 
     @Override
-    public void in(Recipe<?> recipe) {
+    public boolean in(Recipe<?> recipe) {
         if (recipe instanceof ShapedRecipe r) {
             this.recipe = r;
+            return true;
         }
+        return false;
     }
 
     @SuppressWarnings("DuplicatedCode")
