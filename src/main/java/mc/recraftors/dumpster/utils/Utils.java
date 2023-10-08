@@ -152,6 +152,11 @@ public final class Utils {
         return i.get();
     }
 
+    public static void debug() {
+        if (!ConfigUtils.isDebugEnabled()) return;
+        FileUtils.writeDebug(REGISTRIES, RECIPE_PARSERS);
+    }
+
     public static String normalizeId(Identifier id) {
         return id.getNamespace() + File.separator + normalizeIdPath(id);
     }

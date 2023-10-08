@@ -28,6 +28,7 @@ public final class ConfigUtils {
     private static final String DUMP_ORG_DATE = "dumpFile.organizeFolderByDate";
     private static final String DUMP_ORG_TYPE = "dumpFile.organizeFolderByType";
     private static final String DUMP_CLEAR = "dumpFile.clearBeforeDump";
+    private static final String DEBUG = "debug.enable";
 
     static {
         PATH = Path.of(
@@ -45,6 +46,7 @@ public final class ConfigUtils {
         defaults.setProperty(DUMP_ORG_DATE, FALSE);
         defaults.setProperty(DUMP_ORG_TYPE, TRUE);
         defaults.setProperty(DUMP_CLEAR, FALSE);
+        defaults.setProperty(DEBUG, FALSE);
 
         PROPERTIES = new Properties(defaults);
         PROPERTIES.setProperty(STARTUP_REG_DUMP, FALSE);
@@ -105,6 +107,10 @@ public final class ConfigUtils {
 
     public static boolean doDumpFileClearBeforeDump() {
         return Boolean.parseBoolean(PROPERTIES.getProperty(DUMP_CLEAR));
+    }
+
+    public static boolean isDebugEnabled() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DEBUG));
     }
 
     public static boolean reload() throws IOException {

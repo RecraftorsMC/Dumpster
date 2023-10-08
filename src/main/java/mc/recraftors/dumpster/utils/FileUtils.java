@@ -1,7 +1,10 @@
 package mc.recraftors.dumpster.utils;
 
 import com.google.gson.*;
+import mc.recraftors.dumpster.recipes.RecipeJsonParser;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -115,7 +118,7 @@ public final class FileUtils {
             Path p = Path.of(ConfigUtils.dumpFileMainFolder(), "errors.txt");
             Files.createDirectories(p.getParent());
             FileWriter writer = new FileWriter(p.toFile(), true);
-            writer.write(String.format(" ======\tError report %s\t======%n", getNow()));
+            writer.write(String.format(" ======\tError report %s\t======", getNow()));
             for (Map.Entry<String, Set<Identifier>> entry : setMap.entrySet()) {
                 writer.write(String.format("%n%n\t### %s ###", entry.getKey()));
                 for (Identifier id : entry.getValue()) {
@@ -127,6 +130,28 @@ public final class FileUtils {
             writer.close();
         } catch (IOException e) {
             Utils.LOGGER.error("An exception occurred trying to log dump errors", e);
+        }
+    }
+
+    static void writeDebug(@NotNull Collection<Registry<?>> registries, Map<Identifier, RecipeJsonParser> recipeParsers) {
+        try {
+            Path p = Path.of(ConfigUtils.dumpFileMainFolder(), "debug.txt");
+            Files.createDirectories(p.getParent());
+            FileWriter writer = new FileWriter(p.toFile(), true);
+            writer.write(String.format(" ======\tDebug report %s\t======", getNow()));
+            writer.write(String.format("%n\t### Registries ###%n"));
+            for (Registry<?> reg : registries) {
+                writer.write(String.format("\t - %s%n", reg.getKey()));
+            }
+            writer.write(String.format("%n\t### Recipe parsers ###%n"));
+            for (Map.Entry<Identifier, RecipeJsonParser> entry : recipeParsers.entrySet()) {
+                writer.write(String.format("%n\t - %s @ %s", entry.getKey(), entry.getValue().getClass()));
+            }
+            writer.write("\n");
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            Utils.LOGGER.error("An error occurred trying to write {} debug", Utils.MOD_ID, e);
         }
     }
 

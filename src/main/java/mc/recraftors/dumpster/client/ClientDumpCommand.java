@@ -1,8 +1,10 @@
 package mc.recraftors.dumpster.client;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.CommandNode;
+import mc.recraftors.dumpster.utils.ConfigUtils;
 import mc.recraftors.dumpster.utils.FileUtils;
 import mc.recraftors.dumpster.utils.Utils;
 import net.minecraft.client.MinecraftClient;
@@ -21,12 +23,14 @@ import static mc.recraftors.dumpster.client.ClientLiteralArgumentBuilder.literal
 public final class ClientDumpCommand {
     public static void register(CommandDispatcher<ClientCommandSource> dispatcher) {
         CommandNode<ClientCommandSource> dump = dispatcher.findNode(List.of("dump"));
-        dispatcher.register(
-                literal(dump == null ? "dump" : "dump-client")
-                        .executes(ClientDumpCommand::dumpAll)
-                        .then(literal("data").executes(ClientDumpCommand::dumpData))
-                        .then(literal("registries").executes(ClientDumpCommand::dumpReg))
-        );
+        LiteralArgumentBuilder<ClientCommandSource> builder = literal(dump == null ? "dump" : "dump-client")
+                .executes(ClientDumpCommand::dumpAll)
+                .then(literal("data").executes(ClientDumpCommand::dumpData))
+                .then(literal("registries").executes(ClientDumpCommand::dumpReg));
+        if (ConfigUtils.isDebugEnabled()) {
+            builder.then(literal("debug").executes(ClientDumpCommand::debug));
+        }
+        dispatcher.register(builder);
     }
 
     private static int dumpAll(CommandContext<ClientCommandSource> context) {
@@ -60,6 +64,11 @@ public final class ClientDumpCommand {
             toastError(n);
         }
         return n;
+    }
+
+    private static int debug(CommandContext<ClientCommandSource> context) {
+        Utils.debug();
+        return 0;
     }
 
     private static void toastError(int i) {
