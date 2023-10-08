@@ -13,10 +13,12 @@ public final class ShapelessCraftingJsonParser implements RecipeJsonParser {
     private ShapelessRecipe recipe;
 
     @Override
-    public void in(Recipe<?> recipe) {
+    public boolean in(Recipe<?> recipe) {
         if (recipe instanceof ShapelessRecipe s) {
             this.recipe = s;
+            return true;
         }
+        return false;
     }
 
     @SuppressWarnings("DuplicatedCode")

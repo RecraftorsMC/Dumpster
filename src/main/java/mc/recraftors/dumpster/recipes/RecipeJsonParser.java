@@ -10,9 +10,12 @@ public interface RecipeJsonParser extends Objectable {
     /**
      * Puts in the specified recipe of theoretically matching type,
      * to be parsed as JSON with the {@link #toJson()} method.
+     * <p>
+     * Returns whether the provided recipe was accepted
      * @param recipe The recipe to take in.
+     * @return Whether the provided recipe was accepted
      */
-    void in(Recipe<?> recipe);
+    boolean in(Recipe<?> recipe);
 
     /**
      * Parses <b>one</b> recipe to JSON and returns the resulting object
@@ -29,7 +32,7 @@ public interface RecipeJsonParser extends Objectable {
      * @return Whether the current recipe type is special.
      */
     default boolean isSpecial() {
-        return true;
+        return false;
     }
 
     static JsonObject recipeOutput(Recipe<?> recipe) {

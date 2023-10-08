@@ -3,29 +3,36 @@ package mc.recraftors.dumpster.server;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import mc.recraftors.dumpster.utils.ConfigUtils;
 import mc.recraftors.dumpster.utils.Utils;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.world.World;
 
-import static com.mojang.brigadier.builder.LiteralArgumentBuilder.*;
+import java.time.LocalDateTime;
+
+import static mc.recraftors.dumpster.server.ServerLiteralArgumentBuilder.literal;
 
 public final class ServerDumpCommand {
-    @SuppressWarnings("unchecked")
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(((LiteralArgumentBuilder<ServerCommandSource>) (Object) literal("dump"))
+        LiteralArgumentBuilder<ServerCommandSource> builder = literal("dump")
                 .requires(s -> s.hasPermissionLevel(2))
                 .executes(ServerDumpCommand::dumpAll)
-                .then(((LiteralArgumentBuilder<ServerCommandSource>) (Object)literal("data"))
+                .then(literal("data")
                         .executes(ServerDumpCommand::dumpData))
-                .then(((LiteralArgumentBuilder<ServerCommandSource>) (Object)literal("registries"))
-                        .executes(ServerDumpCommand::dumpReg))
-        );
+                .then(literal("registries")
+                        .executes(ServerDumpCommand::dumpReg));
+        if (ConfigUtils.isDebugEnabled()) {
+            builder.then(literal("debug")
+                    .executes(ServerDumpCommand::debug));
+        }
+        dispatcher.register(builder);
     }
 
     private static int dumpAll(CommandContext<ServerCommandSource> context) {
         World w = context.getSource().getWorld();
-        int n = Utils.dumpRegistries() + Utils.dumpData(w);
+        LocalDateTime now = LocalDateTime.now();
+        int n = Utils.dumpRegistries(now) + Utils.dumpData(w, now);
         if (n > 0) {
             error(n, context.getSource());
         } else success(context.getSource());
@@ -34,7 +41,7 @@ public final class ServerDumpCommand {
 
     private static int dumpData(CommandContext<ServerCommandSource> context) {
         ServerCommandSource source = context.getSource();
-        int n = Utils.dumpData(source.getWorld());
+        int n = Utils.dumpData(source.getWorld(), LocalDateTime.now());
         if (n > 0) {
             error(n, source);
         } else success(source);
@@ -42,11 +49,16 @@ public final class ServerDumpCommand {
     }
 
     private static int dumpReg(CommandContext<ServerCommandSource> context) {
-        int n = Utils.dumpRegistries();
+        int n = Utils.dumpRegistries(LocalDateTime.now());
         if (n > 0) {
             error(n, context.getSource());
         } else success(context.getSource());
         return n;
+    }
+
+    private static int debug(CommandContext<ServerCommandSource> context) {
+        Utils.debug();
+        return 0;
     }
 
     private static void error(int n, ServerCommandSource source) {

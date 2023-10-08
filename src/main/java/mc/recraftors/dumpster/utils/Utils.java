@@ -5,12 +5,15 @@ import com.google.gson.JsonPrimitive;
 import mc.recraftors.dumpster.loot_tables.functions.LootFunctionJsonParser;
 import mc.recraftors.dumpster.loot_tables.functions.TargetLootFunctionType;
 import mc.recraftors.dumpster.recipes.RecipeJsonParser;
+import mc.recraftors.dumpster.recipes.ShapedCraftingJsonParser;
+import mc.recraftors.dumpster.recipes.ShapelessCraftingJsonParser;
 import mc.recraftors.dumpster.recipes.TargetRecipeType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.loot.LootManager;
 import net.minecraft.loot.LootTable;
 import net.minecraft.loot.context.LootContextTypes;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.recipe.RecipeType;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
@@ -19,6 +22,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -70,16 +74,16 @@ public final class Utils {
     }
 
     public static void reg(Registry<?> reg) {
+        if (reg == null) {
+            return;
+        }
         REGISTRIES.add(reg);
     }
 
-    public static int dumpRegistries() {
+    public static int dumpRegistries(LocalDateTime now) {
         AtomicInteger i = new AtomicInteger();
+        Set<Identifier> err = new HashSet<>();
         for (Registry<?> reg : REGISTRIES) {
-            if (reg == null) {
-                i.incrementAndGet();
-                continue;
-            }
             Collection<RegistryEntry> entries = new ArrayList<>();
             reg.getEntrySet().forEach(entry -> {
                 Identifier id = entry.getKey().getValue();
@@ -89,23 +93,29 @@ public final class Utils {
                 entries.add(r);
             });
             try {
-                String folder = ConfigUtils.dumpFileMainFolder() + File.separator + "registries";
+                String folder = ConfigUtils.dumpFileMainFolder();
                 if (ConfigUtils.doDumpFileOrganizeFolderByDate()) {
-                    folder += File.separator + FileUtils.getNow();
+                    folder += File.separator + FileUtils.getNow(now);
                 }
+                folder += File.separator + "registries";
                 if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
                     folder += File.separator + normalizeIdPath(reg.getKey().getValue());
                 }
                 FileUtils.writeEntries(folder, reg.getKey().getValue(), entries);
             } catch (IOException e) {
+                err.add(reg.getKey().getValue());
                 LOGGER.error("An error occurred trying to dump registry {}", reg.getKey().getValue(), e);
                 i.incrementAndGet();
             }
         }
+        if (i.get() > 0) {
+            FileUtils.writeErrors(Map.of("Registries", err));
+        }
         return i.get();
     }
 
-    private static void dumpTags(World world, AtomicInteger i) {
+    private static Map<String, Set<Identifier>> dumpTags(World world, AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
         for (Registry<?> reg : REGISTRIES) {
             try {
                 world.getRegistryManager().get(reg.getKey()).streamTagsAndEntries().forEach(pair -> {
@@ -118,31 +128,42 @@ public final class Utils {
                         String s = entry.getKey().get().toString();
                         entries.add(new RegistryEntry(v, tClass, s));
                     });
-                    FileUtils.storeTag(entries, reg.getKey().getValue(), id, i);
+                    FileUtils.storeTag(entries, reg.getKey().getValue(), id, LocalDateTime.now(), i);
                 });
             } catch (IllegalStateException e) {
                 i.incrementAndGet();
+                err.add(reg.getKey().getValue());
             }
         }
+        return Map.of("Tags", err);
     }
 
-    private static void dumpRecipes(World world, AtomicInteger i) {
+    private static Map<String, Set<Identifier>> dumpRecipes(World world, LocalDateTime now, AtomicInteger i) {
         Set<Identifier> unparsableTypes = new HashSet<>();
         Set<Identifier> erroredRecipes = new HashSet<>();
         world.getRecipeManager().values().forEach(recipe -> {
             Identifier id = Registry.RECIPE_TYPE.getId(recipe.getType());
+            RecipeJsonParser parser = RECIPE_PARSERS.get(id);
             if (!RECIPE_PARSERS.containsKey(id)) {
-                unparsableTypes.add(id);
-                return;
+                if (id == null) {
+                    return;
+                }
+                if (id.equals(Registry.RECIPE_TYPE.getId(RecipeType.CRAFTING))) {
+                    if (RECIPE_PARSERS.get(new Identifier(ShapedCraftingJsonParser.TYPE)).in(recipe)) {
+                        parser = RECIPE_PARSERS.get(new Identifier(ShapedCraftingJsonParser.TYPE));
+                    } else parser = RECIPE_PARSERS.get(new Identifier(ShapelessCraftingJsonParser.TYPE));
+                } else {
+                    unparsableTypes.add(id);
+                    return;
+                }
             }
             try {
-                RecipeJsonParser parser = RECIPE_PARSERS.get(id);
                 parser.in(recipe);
                 JsonObject o = parser.toJson();
                 if (o == null) {
                     erroredRecipes.add(recipe.getId());
                 }
-                FileUtils.storeRecipe(o, recipe.getId(), id, parser.isSpecial(), i);
+                FileUtils.storeRecipe(o, recipe.getId(), id, now, parser.isSpecial(), i);
             } catch (Exception e) {
                 erroredRecipes.add(recipe.getId());
             }
@@ -150,6 +171,10 @@ public final class Utils {
         unparsableTypes.forEach(e -> LOGGER.error("Unable to parse recipes of type {}", e));
         erroredRecipes.forEach(e -> LOGGER.error("An error occurred while trying to dump recipe {}", e));
         i.addAndGet(erroredRecipes.size() + unparsableTypes.size());
+        Map<String, Set<Identifier>> out = new HashMap<>();
+        if (!unparsableTypes.isEmpty()) out.put("Recipe Types", unparsableTypes);
+        if (!erroredRecipes.isEmpty()) out.put("Recipes", erroredRecipes);
+        return out;
     }
 
     private static void dumpLootTables(ServerWorld world, AtomicInteger i) {
@@ -164,18 +189,27 @@ public final class Utils {
         });
     }
 
-    public static int dumpData(World world) {
+    public static int dumpData(World world, LocalDateTime now) {
         AtomicInteger i = new AtomicInteger();
+        Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
         if (ConfigUtils.doDataDumpTags()) {
-            dumpTags(world, i);
+            errMap.putAll(dumpTags(world, i));
         }
         if (ConfigUtils.doDataDumpRecipes()) {
-            dumpRecipes(world, i);
+            errMap.putAll(dumpRecipes(world, now, i));
         }
         if (ConfigUtils.doDumpLootTables() && world instanceof ServerWorld s) {
             dumpLootTables(s, i);
         }
+        if (i.get() > 0) {
+            FileUtils.writeErrors(errMap);
+        }
         return i.get();
+    }
+
+    public static void debug() {
+        if (!ConfigUtils.isDebugEnabled()) return;
+        FileUtils.writeDebug(REGISTRIES, RECIPE_PARSERS);
     }
 
     public static String normalizeId(Identifier id) {

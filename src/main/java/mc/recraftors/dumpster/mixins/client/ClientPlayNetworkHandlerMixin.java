@@ -1,6 +1,7 @@
 package mc.recraftors.dumpster.mixins.client;
 
 import mc.recraftors.dumpster.utils.ConfigUtils;
+import mc.recraftors.dumpster.utils.FileUtils;
 import mc.recraftors.dumpster.utils.Utils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -13,6 +14,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.time.LocalDateTime;
+
 @Environment(EnvType.CLIENT)
 @Mixin(ClientPlayNetworkHandler.class)
 public abstract class ClientPlayNetworkHandlerMixin {
@@ -20,11 +23,14 @@ public abstract class ClientPlayNetworkHandlerMixin {
 
     @Inject(method = "onSynchronizeRecipes", at = @At("TAIL"))
     private void onSynchronizedRecipesTailInjector(SynchronizeRecipesS2CPacket packet, CallbackInfo ci) {
-        if (ConfigUtils.doAutoDumpResourcesOnReload()) {
-            Utils.dumpData(this.getWorld());
+        boolean b1 = ConfigUtils.doAutoDumpResourcesOnReload();
+        boolean b2 = ConfigUtils.doAutoDumpRegistriesOnReload();
+        if (b1 || b2) FileUtils.clearIfNeeded();
+        if (b1) {
+            Utils.dumpData(this.getWorld(), LocalDateTime.now());
         }
-        if (ConfigUtils.doAutoDumpRegistriesOnReload()) {
-            Utils.dumpRegistries();
+        if (b2) {
+            Utils.dumpRegistries(LocalDateTime.now());
         }
     }
 }

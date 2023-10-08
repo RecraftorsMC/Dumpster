@@ -11,9 +11,11 @@ public final class SmeltingJsonParser extends AbstractCookingJsonParser {
     }
 
     @Override
-    public void in(Recipe<?> recipe) {
+    public boolean in(Recipe<?> recipe) {
         if (recipe instanceof SmeltingRecipe s) {
             take(s);
+            return true;
         }
+        return false;
     }
 }

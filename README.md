@@ -52,19 +52,17 @@ public class MyRecipeTypeJsonParser {
     private MyRecipe recipe;
 
     @Override
-    public boolean isSpecial() {
-        return false;
-    }
-
-    @Override
-    public void in(Recipe<?> recipe) {
+    public boolean in(Recipe<?> recipe) {
         if (recipe instanceof MyRecipe myRecipe) {
             this.recipe = myRecipe;
+            return true;
         }
+        return false;
     }
 
     @Override
     public JsonObject toJson() {
         // implement your parsing method here
     }
+}
 ```
