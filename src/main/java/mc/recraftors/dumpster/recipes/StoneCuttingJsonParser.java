@@ -13,11 +13,6 @@ public class StoneCuttingJsonParser implements RecipeJsonParser {
     private StonecuttingRecipe recipe;
 
     @Override
-    public boolean isSpecial() {
-        return false;
-    }
-
-    @Override
     public boolean in(Recipe<?> recipe) {
         if (recipe instanceof StonecuttingRecipe r) {
             this.recipe = r;

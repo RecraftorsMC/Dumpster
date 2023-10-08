@@ -22,11 +22,6 @@ public abstract class AbstractCookingJsonParser implements RecipeJsonParser {
     }
 
     @Override
-    public final boolean isSpecial() {
-        return false;
-    }
-
-    @Override
     public JsonObject toJson() {
         if (this.recipe == null) {
             return null;

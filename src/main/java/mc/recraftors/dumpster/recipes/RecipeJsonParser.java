@@ -29,7 +29,7 @@ public interface RecipeJsonParser extends Objectable {
      * @return Whether the current recipe type is special.
      */
     default boolean isSpecial() {
-        return true;
+        return false;
     }
 
     static JsonObject recipeOutput(Recipe<?> recipe) {

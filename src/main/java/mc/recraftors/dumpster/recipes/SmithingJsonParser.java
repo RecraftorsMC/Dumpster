@@ -12,11 +12,6 @@ public final class SmithingJsonParser implements RecipeJsonParser {
     private SmithingRecipe recipe;
 
     @Override
-    public boolean isSpecial() {
-        return false;
-    }
-
-    @Override
     public boolean in(Recipe<?> recipe) {
         if (recipe instanceof SmithingRecipe s) {
             this.recipe = s;
