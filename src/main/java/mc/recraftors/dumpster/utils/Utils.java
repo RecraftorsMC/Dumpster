@@ -5,15 +5,13 @@ import com.google.gson.JsonPrimitive;
 import mc.recraftors.dumpster.loot_tables.functions.LootFunctionJsonParser;
 import mc.recraftors.dumpster.loot_tables.functions.TargetLootFunctionType;
 import mc.recraftors.dumpster.recipes.RecipeJsonParser;
-import mc.recraftors.dumpster.recipes.ShapedCraftingJsonParser;
-import mc.recraftors.dumpster.recipes.ShapelessCraftingJsonParser;
 import mc.recraftors.dumpster.recipes.TargetRecipeType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.loot.LootManager;
 import net.minecraft.loot.LootTable;
 import net.minecraft.loot.context.LootContextTypes;
+import net.minecraft.recipe.Recipe;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.recipe.RecipeType;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
@@ -138,24 +136,39 @@ public final class Utils {
         return Map.of("Tags", err);
     }
 
+    private static RecipeJsonParser getParser(Recipe<?> recipe) {
+        Identifier id = Registry.RECIPE_TYPE.getId(recipe.getType());
+        if (id == null) {
+            return null;
+        }
+        RecipeJsonParser parser = RECIPE_PARSERS.get(id);
+        if (parser == null) {
+            for (RecipeJsonParser p : RECIPE_PARSERS.values()) {
+                if (!p.getClass().isAnnotationPresent(TargetRecipeType.class)) continue;
+                TargetRecipeType type = p.getClass().getAnnotation(TargetRecipeType.class);
+                for (String s : type.supports()) {
+                    if (id.equals(Identifier.tryParse(s)) && p.in(recipe) == RecipeJsonParser.InResult.SUCCESS) {
+                        parser = p;
+                        break;
+                    }
+                }
+                if (parser == null) {
+                    break;
+                }
+            }
+        }
+        return parser;
+    }
+
     private static Map<String, Set<Identifier>> dumpRecipes(World world, LocalDateTime now, AtomicInteger i) {
         Set<Identifier> unparsableTypes = new HashSet<>();
         Set<Identifier> erroredRecipes = new HashSet<>();
         world.getRecipeManager().values().forEach(recipe -> {
             Identifier id = Registry.RECIPE_TYPE.getId(recipe.getType());
-            RecipeJsonParser parser = RECIPE_PARSERS.get(id);
-            if (!RECIPE_PARSERS.containsKey(id)) {
-                if (id == null) {
-                    return;
-                }
-                if (id.equals(Registry.RECIPE_TYPE.getId(RecipeType.CRAFTING))) {
-                    if (RECIPE_PARSERS.get(new Identifier(ShapedCraftingJsonParser.TYPE)).in(recipe)) {
-                        parser = RECIPE_PARSERS.get(new Identifier(ShapedCraftingJsonParser.TYPE));
-                    } else parser = RECIPE_PARSERS.get(new Identifier(ShapelessCraftingJsonParser.TYPE));
-                } else {
-                    unparsableTypes.add(id);
-                    return;
-                }
+            RecipeJsonParser parser = getParser(recipe);
+            if (parser == null) {
+                unparsableTypes.add(id);
+                return;
             }
             try {
                 parser.in(recipe);
@@ -168,6 +181,7 @@ public final class Utils {
                 erroredRecipes.add(recipe.getId());
             }
         });
+        RECIPE_PARSERS.values().forEach(RecipeJsonParser::cycle);
         unparsableTypes.forEach(e -> LOGGER.error("Unable to parse recipes of type {}", e));
         erroredRecipes.forEach(e -> LOGGER.error("An error occurred while trying to dump recipe {}", e));
         i.addAndGet(erroredRecipes.size() + unparsableTypes.size());

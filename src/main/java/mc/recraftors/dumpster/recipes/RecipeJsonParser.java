@@ -6,6 +6,12 @@ import mc.recraftors.dumpster.utils.Objectable;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.util.registry.Registry;
 
+/**
+ * A recipe type parser class interface.
+ * Must be used alongside {@link TargetRecipeType}
+ * and registered as {@code recipe-dump} in the
+ * mod's entry-points in order to be effective.
+ */
 public interface RecipeJsonParser extends Objectable {
     /**
      * Puts in the specified recipe of theoretically matching type,
@@ -15,7 +21,7 @@ public interface RecipeJsonParser extends Objectable {
      * @param recipe The recipe to take in.
      * @return Whether the provided recipe was accepted
      */
-    boolean in(Recipe<?> recipe);
+    InResult in(Recipe<?> recipe);
 
     /**
      * Parses <b>one</b> recipe to JSON and returns the resulting object
@@ -35,6 +41,12 @@ public interface RecipeJsonParser extends Objectable {
         return false;
     }
 
+    /**
+     * Runs after each dumping cycle.
+     * Allows for parsers to clear statically stored values.
+     */
+    default void cycle() {}
+
     static JsonObject recipeOutput(Recipe<?> recipe) {
         JsonObject res = new JsonObject();
         res.add("item", new JsonPrimitive(Registry.ITEM.getId(recipe.getOutput().getItem()).toString()));
@@ -48,5 +60,11 @@ public interface RecipeJsonParser extends Objectable {
         if (recipe.getGroup() != null && !recipe.getGroup().isEmpty()) {
             object.add("group", new JsonPrimitive(recipe.getGroup()));
         }
+    }
+
+    enum InResult {
+        SUCCESS,
+        FAILURE,
+        IGNORED
     }
 }

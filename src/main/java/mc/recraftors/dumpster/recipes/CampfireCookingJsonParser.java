@@ -12,11 +12,11 @@ public final class CampfireCookingJsonParser extends AbstractCookingJsonParser {
     }
 
     @Override
-    public boolean in(Recipe<?> recipe) {
+    public InResult in(Recipe<?> recipe) {
         if (recipe instanceof CampfireCookingRecipe s) {
             take(s);
-            return true;
+            return InResult.SUCCESS;
         }
-        return false;
+        return InResult.FAILURE;
     }
 }

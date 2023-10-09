@@ -22,4 +22,11 @@ public @interface TargetRecipeType {
      * Allows to overhaul other potential parser, in case of recipe modification.
      */
     int priority() default 1;
+
+    /**
+     * Indicates other recipe schema IDs that can be supported by
+     * the parser. Allows for cumulative format support/multiple
+     * parser acceptance for a same schema.
+     */
+    String[] supports() default {};
 }
