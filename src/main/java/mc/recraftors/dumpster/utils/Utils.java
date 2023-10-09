@@ -193,11 +193,13 @@ public final class Utils {
                 FileUtils.storeRecipe(o, recipe.getId(), id, now, parser.isSpecial(), i);
             } catch (Exception e) {
                 erroredRecipes.add(recipe.getId());
+                if (ConfigUtils.doErrorPrintStacktrace()) {
+                    LOGGER.error("An error occurred while trying to dump recipe {}", recipe.getId(), e);
+                }
             }
         });
         RECIPE_PARSERS.values().forEach(RecipeJsonParser::cycle);
         nonParsableTypes.forEach(e -> LOGGER.error("Unable to parse recipes of type {}", e));
-        erroredRecipes.forEach(e -> LOGGER.error("An error occurred while trying to dump recipe {}", e));
         i.addAndGet(erroredRecipes.size() + nonParsableTypes.size());
         Map<String, Set<Identifier>> out = new HashMap<>();
         if (!nonParsableTypes.isEmpty()) out.put("Recipe Types", nonParsableTypes);

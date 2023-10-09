@@ -30,6 +30,7 @@ public final class ConfigUtils {
     private static final String DUMP_ORG_TYPE = "dumpFile.organizeFolderByType";
     private static final String DUMP_CLEAR = "dumpFile.clearBeforeDump";
     private static final String DEBUG = "debug.enable";
+    private static final String ERROR_STACKTRACE = "debug.stacktrace";
 
     static {
         PATH = Path.of(
@@ -49,6 +50,7 @@ public final class ConfigUtils {
         defaults.setProperty(DUMP_ORG_TYPE, TRUE);
         defaults.setProperty(DUMP_CLEAR, FALSE);
         defaults.setProperty(DEBUG, FALSE);
+        defaults.setProperty(ERROR_STACKTRACE, FALSE);
 
         PROPERTIES = new Properties(defaults);
         PROPERTIES.setProperty(STARTUP_REG_DUMP, FALSE);
@@ -120,7 +122,11 @@ public final class ConfigUtils {
         return Boolean.parseBoolean(PROPERTIES.getProperty(DEBUG));
     }
 
-    public static boolean reload() throws IOException {
+    public static boolean doErrorPrintStacktrace() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(ERROR_STACKTRACE));
+    }
+
+    public static void reload() throws IOException {
         boolean b = Files.exists(PATH) && Files.isRegularFile(PATH) && Files.isReadable(PATH);
         if (!b) {
             try (FileReader reader = new FileReader(PATH.toFile())) {
@@ -130,7 +136,6 @@ public final class ConfigUtils {
             save();
         }
         validateTargetPath();
-        return b;
     }
 
     public static void save() throws IOException {
