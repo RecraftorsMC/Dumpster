@@ -7,7 +7,7 @@ import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.ShapelessRecipe;
 import net.minecraft.util.registry.Registry;
 
-@TargetRecipeType(ShapelessCraftingJsonParser.TYPE)
+@TargetRecipeType(value = ShapelessCraftingJsonParser.TYPE, supports = "crafting")
 public final class ShapelessCraftingJsonParser implements RecipeJsonParser {
     public static final String TYPE = "minecraft:crafting_shapeless";
     private ShapelessRecipe recipe;
