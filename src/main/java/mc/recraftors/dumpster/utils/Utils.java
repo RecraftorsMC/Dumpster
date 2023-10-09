@@ -92,7 +92,7 @@ public final class Utils {
         return i.get();
     }
 
-    private static Map<String, Set<Identifier>> dumpTags(World world, AtomicInteger i) {
+    private static Map<String, Set<Identifier>> dumpTags(World world, LocalDateTime now, AtomicInteger i) {
         Set<Identifier> err = new HashSet<>();
         for (Registry<?> reg : REGISTRIES) {
             try {
@@ -106,7 +106,7 @@ public final class Utils {
                         String s = entry.getKey().get().toString();
                         entries.add(new RegistryEntry(v, tClass, s));
                     });
-                    FileUtils.storeTag(entries, reg.getKey().getValue(), id, LocalDateTime.now(), i);
+                    FileUtils.storeTag(entries, reg.getKey().getValue(), id, now, i);
                 });
             } catch (IllegalStateException e) {
                 i.incrementAndGet();
@@ -203,7 +203,7 @@ public final class Utils {
         AtomicInteger i = new AtomicInteger();
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
         if (ConfigUtils.doDataDumpTags()) {
-            errMap.putAll(dumpTags(world, i));
+            errMap.putAll(dumpTags(world, now, i));
         }
         if (ConfigUtils.doDataDumpRecipes()) {
             errMap.putAll(dumpRecipes(world, now, i));
