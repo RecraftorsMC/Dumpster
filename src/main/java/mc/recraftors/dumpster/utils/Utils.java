@@ -1,15 +1,13 @@
 package mc.recraftors.dumpster.utils;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import mc.recraftors.dumpster.loot_tables.functions.LootFunctionJsonParser;
-import mc.recraftors.dumpster.loot_tables.functions.TargetLootFunctionType;
 import mc.recraftors.dumpster.recipes.RecipeJsonParser;
 import mc.recraftors.dumpster.recipes.TargetRecipeType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.loot.LootManager;
 import net.minecraft.loot.LootTable;
-import net.minecraft.loot.context.LootContextTypes;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
@@ -32,7 +30,6 @@ public final class Utils {
 
     private static final Collection<Registry<?>> REGISTRIES = new LinkedHashSet<>();
     private static final Map<Identifier, RecipeJsonParser> RECIPE_PARSERS;
-    private static final Map<Identifier, LootFunctionJsonParser> LOOT_FUNCTION_PARSERS;
 
     static {
         Map<Identifier, RecipeJsonParser> recipeParserMap = new HashMap<>();
@@ -52,23 +49,6 @@ public final class Utils {
             }
         });
         RECIPE_PARSERS = recipeParserMap;
-        Map<Identifier, LootFunctionJsonParser> lootFunctionParserMap = new HashMap<>();
-        FabricLoader.getInstance().getEntrypoints("loot-context-dump", LootFunctionJsonParser.class).forEach(e -> {
-            if (!e.getClass().isAnnotationPresent(TargetLootFunctionType.class)) return;
-            TargetLootFunctionType type = e.getClass().getAnnotation(TargetLootFunctionType.class);
-            Identifier id = Identifier.tryParse(type.value());
-            if (id == null) return;
-            if (lootFunctionParserMap.containsKey(id)) {
-                LootFunctionJsonParser o = lootFunctionParserMap.get(id);
-                if (!o.getClass().isAnnotationPresent(TargetLootFunctionType.class) ||
-                        o.getClass().getAnnotation(TargetLootFunctionType.class).priority() < type.priority()) {
-                    lootFunctionParserMap.put(id, e);
-                }
-            } else {
-                lootFunctionParserMap.put(id, e);
-            }
-        });
-        LOOT_FUNCTION_PARSERS = lootFunctionParserMap;
     }
 
     public static void reg(Registry<?> reg) {
@@ -136,7 +116,18 @@ public final class Utils {
         return Map.of("Tags", err);
     }
 
-    private static RecipeJsonParser getParser(Recipe<?> recipe) {
+    private static RecipeJsonParser resolveRecipeParser(Recipe<?> recipe, Identifier id, RecipeJsonParser parser) {
+        if (!parser.getClass().isAnnotationPresent(TargetRecipeType.class)) return null;
+        TargetRecipeType type = parser.getClass().getAnnotation(TargetRecipeType.class);
+        for (String s : type.supports()) {
+            if (id.equals(Identifier.tryParse(s)) && parser.in(recipe) == RecipeJsonParser.InResult.SUCCESS) {
+                return parser;
+            }
+        }
+        return null;
+    }
+
+    private static RecipeJsonParser getRecipeParser(Recipe<?> recipe) {
         Identifier id = Registry.RECIPE_TYPE.getId(recipe.getType());
         if (id == null) {
             return null;
@@ -144,14 +135,7 @@ public final class Utils {
         RecipeJsonParser parser = RECIPE_PARSERS.get(id);
         if (parser == null) {
             for (RecipeJsonParser p : RECIPE_PARSERS.values()) {
-                if (!p.getClass().isAnnotationPresent(TargetRecipeType.class)) continue;
-                TargetRecipeType type = p.getClass().getAnnotation(TargetRecipeType.class);
-                for (String s : type.supports()) {
-                    if (id.equals(Identifier.tryParse(s)) && p.in(recipe) == RecipeJsonParser.InResult.SUCCESS) {
-                        parser = p;
-                        break;
-                    }
-                }
+                parser = resolveRecipeParser(recipe, id, p);
                 if (parser == null) {
                     break;
                 }
@@ -161,13 +145,13 @@ public final class Utils {
     }
 
     private static Map<String, Set<Identifier>> dumpRecipes(World world, LocalDateTime now, AtomicInteger i) {
-        Set<Identifier> unparsableTypes = new HashSet<>();
+        Set<Identifier> nonParsableTypes = new HashSet<>();
         Set<Identifier> erroredRecipes = new HashSet<>();
         world.getRecipeManager().values().forEach(recipe -> {
             Identifier id = Registry.RECIPE_TYPE.getId(recipe.getType());
-            RecipeJsonParser parser = getParser(recipe);
+            RecipeJsonParser parser = getRecipeParser(recipe);
             if (parser == null) {
-                unparsableTypes.add(id);
+                nonParsableTypes.add(id);
                 return;
             }
             try {
@@ -189,25 +173,30 @@ public final class Utils {
             }
         });
         RECIPE_PARSERS.values().forEach(RecipeJsonParser::cycle);
-        unparsableTypes.forEach(e -> LOGGER.error("Unable to parse recipes of type {}", e));
+        nonParsableTypes.forEach(e -> LOGGER.error("Unable to parse recipes of type {}", e));
         erroredRecipes.forEach(e -> LOGGER.error("An error occurred while trying to dump recipe {}", e));
-        i.addAndGet(erroredRecipes.size() + unparsableTypes.size());
+        i.addAndGet(erroredRecipes.size() + nonParsableTypes.size());
         Map<String, Set<Identifier>> out = new HashMap<>();
-        if (!unparsableTypes.isEmpty()) out.put("Recipe Types", unparsableTypes);
+        if (!nonParsableTypes.isEmpty()) out.put("Recipe Types", nonParsableTypes);
         if (!erroredRecipes.isEmpty()) out.put("Recipes", erroredRecipes);
         return out;
     }
 
-    private static void dumpLootTables(ServerWorld world, AtomicInteger i) {
-        Set<Identifier> unparsableFunctions = new HashSet<>();
+    private static Map<String, Set<Identifier>> dumpLootTables(ServerWorld world, LocalDateTime now, AtomicInteger i) {
+        Set<Identifier> errTables = new HashSet<>();
         LootManager manager = world.getServer().getLootManager();
         manager.getTableIds().forEach(id -> {
             LootTable table = manager.getTable(id);
-            Identifier type = LootContextTypes.getId(table.getType());
-            JsonObject main = new JsonObject();
-            main.add("type", new JsonPrimitive(type.toString()));
-            //TODO: implement loot context parsing system similar to the recipe one
+            try {
+                JsonElement e = LootManager.toJson(table);
+                FileUtils.storeLootTable(e, id, now, i);
+            } catch (JsonIOException|NullPointerException e) {
+                i.incrementAndGet();
+                errTables.add(id);
+            }
         });
+        if (errTables.isEmpty()) return Map.of();
+        return Map.of("Loot Tables", errTables);
     }
 
     public static int dumpData(World world, LocalDateTime now) {
@@ -220,7 +209,7 @@ public final class Utils {
             errMap.putAll(dumpRecipes(world, now, i));
         }
         if (ConfigUtils.doDumpLootTables() && world instanceof ServerWorld s) {
-            dumpLootTables(s, i);
+            errMap.putAll(dumpLootTables(s, now, i));
         }
         if (i.get() > 0) {
             FileUtils.writeErrors(errMap);
