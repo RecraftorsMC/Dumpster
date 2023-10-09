@@ -40,7 +40,7 @@ public final class ShapedCraftingJsonParser implements RecipeJsonParser {
             if (in.isEmpty()) continue;
             if (keys.entrySet().stream().map(e -> e.getValue().getAsJsonObject()).anyMatch(e -> e.equals(in.toJson())))
                 continue;
-            keys.add(String.valueOf((char) i+61), in.toJson());
+            keys.add(((char) i+61)+"", in.toJson());
         }
         for (int i = 0; i < recipe.getHeight(); i++) {
             StringBuilder s = new StringBuilder();
