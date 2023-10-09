@@ -171,10 +171,17 @@ public final class Utils {
                 return;
             }
             try {
-                parser.in(recipe);
+                RecipeJsonParser.InResult result = parser.in(recipe);
+                if (result == RecipeJsonParser.InResult.FAILURE) {
+                    erroredRecipes.add(recipe.getId());
+                }
+                if (result != RecipeJsonParser.InResult.SUCCESS) {
+                    return;
+                }
                 JsonObject o = parser.toJson();
                 if (o == null) {
                     erroredRecipes.add(recipe.getId());
+                    return;
                 }
                 FileUtils.storeRecipe(o, recipe.getId(), id, now, parser.isSpecial(), i);
             } catch (Exception e) {
