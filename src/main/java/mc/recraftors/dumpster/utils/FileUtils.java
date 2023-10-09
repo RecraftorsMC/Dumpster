@@ -86,16 +86,10 @@ public final class FileUtils {
     }
 
     static void storeJson(JsonElement e, String s) throws IOException {
-        FileWriter w = null;
-        try {
-            File f = new File(s);
-            Files.createDirectories(f.getParentFile().toPath());
-            w = new FileWriter(f);
+        File f = new File(s);
+        Files.createDirectories(f.getParentFile().toPath());
+        try (FileWriter w = new FileWriter(f)) {
             w.write(GSON.toJson(e));
-            w.flush();
-            w.close();
-        } finally {
-            if (w != null) w.close();
         }
     }
 
@@ -127,6 +121,9 @@ public final class FileUtils {
                 builder.append(File.separator).append(getNow(now));
             }
             builder.append(File.separator).append("loot_tables");
+            if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
+                builder.append(File.separator).append(id.getNamespace());
+            }
             builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(".json");
             storeJson(elem, builder.toString());
         } catch (IOException e) {
