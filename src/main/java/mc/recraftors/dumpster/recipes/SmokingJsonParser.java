@@ -11,11 +11,11 @@ public final class SmokingJsonParser extends AbstractCookingJsonParser {
     }
 
     @Override
-    public boolean in(Recipe<?> recipe) {
+    public InResult in(Recipe<?> recipe) {
         if (recipe instanceof SmokingRecipe r) {
             take(r);
-            return true;
+            return InResult.SUCCESS;
         }
-        return false;
+        return InResult.FAILURE;
     }
 }

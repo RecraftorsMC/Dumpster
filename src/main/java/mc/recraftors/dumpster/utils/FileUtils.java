@@ -85,6 +85,14 @@ public final class FileUtils {
         }
     }
 
+    static void storeJson(JsonObject e, String s) throws IOException {
+        File f = new File(s);
+        Files.createDirectories(f.getParentFile().toPath());
+        try (FileWriter w = new FileWriter(f)) {
+            w.write(GSON.toJson(e));
+        }
+    }
+
     static void storeRecipe(JsonObject object, Identifier id, Identifier type, LocalDateTime now, boolean isSpecial, AtomicInteger i) {
         try {
             StringBuilder builder = new StringBuilder(ConfigUtils.dumpFileMainFolder());
@@ -99,12 +107,25 @@ public final class FileUtils {
                 builder.append(File.separator).append(singleNameIdPath(type));
             }
             builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(".json");
-            File f = new File(builder.toString());
-            Files.createDirectories(f.getParentFile().toPath());
-            FileWriter writer = new FileWriter(f);
-            writer.write(GSON.toJson(object));
-            writer.flush();
-            writer.close();
+            storeJson(object, builder.toString());
+        } catch (IOException e) {
+            Utils.LOGGER.error("An error occurred trying to dump data {}", id);
+            i.incrementAndGet();
+        }
+    }
+
+    static void storeLootTable(JsonObject elem, Identifier id, LocalDateTime now, AtomicInteger i) {
+        try {
+            StringBuilder builder = new StringBuilder(ConfigUtils.dumpFileMainFolder());
+            if (ConfigUtils.doDumpFileOrganizeFolderByDate()) {
+                builder.append(File.separator).append(getNow(now));
+            }
+            builder.append(File.separator).append("loot_tables");
+            if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
+                builder.append(File.separator).append(id.getNamespace());
+            }
+            builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(".json");
+            storeJson(elem, builder.toString());
         } catch (IOException e) {
             Utils.LOGGER.error("An error occurred trying to dump data {}", id);
             i.incrementAndGet();

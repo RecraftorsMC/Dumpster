@@ -13,12 +13,12 @@ public class StoneCuttingJsonParser implements RecipeJsonParser {
     private StonecuttingRecipe recipe;
 
     @Override
-    public boolean in(Recipe<?> recipe) {
+    public InResult in(Recipe<?> recipe) {
         if (recipe instanceof StonecuttingRecipe r) {
             this.recipe = r;
-            return true;
+            return InResult.SUCCESS;
         }
-        return false;
+        return InResult.FAILURE;
     }
 
     @Override
