@@ -85,7 +85,7 @@ public final class FileUtils {
         }
     }
 
-    static void storeJson(JsonElement e, String s) throws IOException {
+    static void storeJson(JsonObject e, String s) throws IOException {
         File f = new File(s);
         Files.createDirectories(f.getParentFile().toPath());
         try (FileWriter w = new FileWriter(f)) {
@@ -114,7 +114,7 @@ public final class FileUtils {
         }
     }
 
-    static void storeLootTable(JsonElement elem, Identifier id, LocalDateTime now, AtomicInteger i) {
+    static void storeLootTable(JsonObject elem, Identifier id, LocalDateTime now, AtomicInteger i) {
         try {
             StringBuilder builder = new StringBuilder(ConfigUtils.dumpFileMainFolder());
             if (ConfigUtils.doDumpFileOrganizeFolderByDate()) {
