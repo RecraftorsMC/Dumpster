@@ -62,9 +62,21 @@ public interface RecipeJsonParser extends Objectable {
         }
     }
 
+    /**
+     * The output options of using the {@link #in} method
+     */
     enum InResult {
+        /**
+         * When the parser successfully took in the provided recipe
+         */
         SUCCESS,
+        /**
+         * When the parser failed to take in the provided recipe
+         */
         FAILURE,
+        /**
+         * When the provided recipe should be ignored (e.g. dynamic recipes based on a single one)
+         */
         IGNORED
     }
 }

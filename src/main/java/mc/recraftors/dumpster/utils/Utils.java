@@ -157,7 +157,7 @@ public final class Utils {
         if (parser == null) {
             for (RecipeJsonParser p : RECIPE_PARSERS.values()) {
                 parser = resolveRecipeParser(recipe, id, p);
-                if (parser == null) {
+                if (parser != null) {
                     break;
                 }
             }
@@ -188,6 +188,8 @@ public final class Utils {
                     erroredRecipes.add(recipe.getId());
                     return;
                 }
+                //noinspection OptionalGetWithoutIsPresent
+                id = RECIPE_PARSERS.keySet().stream().filter(k -> RECIPE_PARSERS.get(k).equals(parser)).findFirst().get();
                 FileUtils.storeRecipe(o, recipe.getId(), id, now, parser.isSpecial(), i);
             } catch (Exception e) {
                 erroredRecipes.add(recipe.getId());
