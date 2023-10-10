@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import mc.recraftors.dumpster.utils.Objectable;
 import net.minecraft.recipe.Recipe;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
 /**
@@ -46,6 +47,22 @@ public interface RecipeJsonParser extends Objectable {
      * Allows for parsers to clear statically stored values.
      */
     default void cycle() {}
+
+    /**
+     * When the inserted recipe builds up a new recipe, from which it
+     * supposedly gets generated, with a different ID, this method
+     * allows to provide that other ID at which the parsed JSON should
+     * be stored.
+     * <p>
+     * Warning: make sure to return {@code null} if using it but doesn't
+     * affect the current recipe. This meaning, as much as possible, return
+     * it from the current recipe, or clear your custom attribute when
+     * inserting a new recipe.
+     * @return The potential alternative ID of the current recipe.
+     */
+    default Identifier alternativeId() {
+        return null;
+    }
 
     static JsonObject recipeOutput(Recipe<?> recipe) {
         JsonObject res = new JsonObject();

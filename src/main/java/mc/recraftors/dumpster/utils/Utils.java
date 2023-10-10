@@ -1,6 +1,5 @@
 package mc.recraftors.dumpster.utils;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import mc.recraftors.dumpster.recipes.RecipeJsonParser;
@@ -144,38 +143,36 @@ public final class Utils {
         return parser;
     }
 
+    private static int processRecipe(Recipe<?> recipe, RecipeJsonParser parser, LocalDateTime now, AtomicInteger i) {
+        if (parser == null) return 1;
+        try {
+          RecipeJsonParser.InResult result = parser.in(recipe);
+          if (result == RecipeJsonParser.InResult.FAILURE) return 2;
+          if (result == RecipeJsonParser.InResult.IGNORED) return -1;
+          JsonObject o = parser.toJson();
+          if (o == null) return 2;
+          // noinspection OptionalGetWithoutIsPresent
+          Identifier type = RECIPE_PARSERS.keySet().stream().filter(k -> RECIPE_PARSERS.get(k).equals(parser)).findFirst().get();
+          Identifier id = Optional.ofNullable(parser.alternativeId()).orElse(recipe.getId());
+          FileUtils.storeRecipe(o, id, type, now, parser.isSpecial(), i);
+        } catch (Exception e) {
+            if (ConfigUtils.doErrorPrintStacktrace()) {
+                LOGGER.error("An error occurred while trying to dump recipe {}", recipe.getId(), e);
+            }
+            return 2;
+        }
+        return 0;
+    }
+
     private static Map<String, Set<Identifier>> dumpRecipes(World world, LocalDateTime now, AtomicInteger i) {
         Set<Identifier> nonParsableTypes = new HashSet<>();
         Set<Identifier> erroredRecipes = new HashSet<>();
         world.getRecipeManager().values().forEach(recipe -> {
             Identifier id = Registry.RECIPE_TYPE.getId(recipe.getType());
             RecipeJsonParser parser = getRecipeParser(recipe);
-            if (parser == null) {
-                nonParsableTypes.add(id);
-                return;
-            }
-            try {
-                RecipeJsonParser.InResult result = parser.in(recipe);
-                if (result == RecipeJsonParser.InResult.FAILURE) {
-                    erroredRecipes.add(recipe.getId());
-                }
-                if (result != RecipeJsonParser.InResult.SUCCESS) {
-                    return;
-                }
-                JsonObject o = parser.toJson();
-                if (o == null) {
-                    erroredRecipes.add(recipe.getId());
-                    return;
-                }
-                //noinspection OptionalGetWithoutIsPresent
-                id = RECIPE_PARSERS.keySet().stream().filter(k -> RECIPE_PARSERS.get(k).equals(parser)).findFirst().get();
-                FileUtils.storeRecipe(o, recipe.getId(), id, now, parser.isSpecial(), i);
-            } catch (Exception e) {
-                erroredRecipes.add(recipe.getId());
-                if (ConfigUtils.doErrorPrintStacktrace()) {
-                    LOGGER.error("An error occurred while trying to dump recipe {}", recipe.getId(), e);
-                }
-            }
+            int r = processRecipe(recipe, parser, now, i);
+            if (r == 2) erroredRecipes.add(recipe.getId());
+            else if (r == 1) nonParsableTypes.add(id);
         });
         RECIPE_PARSERS.values().forEach(RecipeJsonParser::cycle);
         nonParsableTypes.forEach(e -> LOGGER.error("Unable to parse recipes of type {}", e));
