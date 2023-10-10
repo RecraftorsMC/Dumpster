@@ -58,27 +58,6 @@ public final class Utils {
         REGISTRIES.add(reg);
     }
 
-    public static void jsonClearNull(JsonElement e) {
-        if (e == null || !(e.isJsonArray() || e.isJsonObject())) {
-            return;
-        }
-        if (e.isJsonObject()) {
-            Iterator<Map.Entry<String, JsonElement>> iter = e.getAsJsonObject().entrySet().iterator();
-            while (iter.hasNext()) {
-                Map.Entry<String, JsonElement> c = iter.next();
-                if (c.getValue() == null || c.getValue().isJsonNull()) iter.remove();
-                else jsonClearNull(c.getValue());
-            }
-        } else if (e.isJsonArray()) {
-            Iterator<JsonElement> iter = e.getAsJsonArray().iterator();
-            while (iter.hasNext()) {
-                JsonElement c = iter.next();
-                if (c == null || c.isJsonNull()) iter.remove();
-                else jsonClearNull(c);
-            }
-        }
-    }
-
     public static int dumpRegistries(LocalDateTime now) {
         AtomicInteger i = new AtomicInteger();
         Set<Identifier> err = new HashSet<>();
@@ -214,7 +193,7 @@ public final class Utils {
             LootTable table = manager.getTable(id);
             try {
                 JsonObject o = LootManager.toJson(table).getAsJsonObject();
-                jsonClearNull(o);
+                JsonUtils.jsonClearNull(o);
                 FileUtils.storeLootTable(o, id, now, i);
             } catch (JsonIOException|NullPointerException|IllegalStateException e) {
                 i.incrementAndGet();
