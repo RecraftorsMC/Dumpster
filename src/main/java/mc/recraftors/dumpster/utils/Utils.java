@@ -204,6 +204,18 @@ public final class Utils {
         return Map.of("Loot Tables", errTables);
     }
 
+    private static Map<String, Set<Identifier>> dumpAdvancements(ServerWorld world, LocalDateTime now, AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
+        world.getServer().getAdvancementLoader().getAdvancements().forEach(adv -> {
+            JsonObject o = JsonUtils.advancementToJson(adv);
+            if (FileUtils.storeAdvancement(o, adv.getId(), now, i)) {
+                err.add(adv.getId());
+            }
+        });
+        if (!err.isEmpty()) return Map.of("Advancements", err);
+        return Map.of();
+    }
+
     public static int dumpData(World world, LocalDateTime now) {
         AtomicInteger i = new AtomicInteger();
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
@@ -213,8 +225,13 @@ public final class Utils {
         if (ConfigUtils.doDataDumpRecipes()) {
             errMap.putAll(dumpRecipes(world, now, i));
         }
-        if (ConfigUtils.doDumpLootTables() && world instanceof ServerWorld s) {
-            errMap.putAll(dumpLootTables(s, now, i));
+        if (world instanceof ServerWorld w) {
+            if (ConfigUtils.doDumpLootTables()) {
+                errMap.putAll(dumpLootTables(w, now, i));
+            }
+            if (ConfigUtils.doDumpAdvancements()) {
+                errMap.putAll(dumpAdvancements(w, now, i));
+            }
         }
         if (i.get() > 0) {
             FileUtils.writeErrors(errMap);
