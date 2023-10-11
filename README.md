@@ -48,16 +48,16 @@ import mc.recraftors.dumpster.recipes.TargetRecipeType;
 import net.minecraft.recipe.Recipe;
 
 @TargetRecipeType("mymod:myrecipetype")
-public class MyRecipeTypeJsonParser {
+public class MyRecipeTypeJsonParser implements RecipeJsonParser {
     private MyRecipe recipe;
 
     @Override
-    public boolean in(Recipe<?> recipe) {
+    public JsonParser.InResult in(Recipe<?> recipe) {
         if (recipe instanceof MyRecipe myRecipe) {
             this.recipe = myRecipe;
-            return true;
+            return RecipeJsonParser.InResult.SUCCESS;
         }
-        return false;
+        return RecipeJsonParser.InResult.FAILURE;
     }
 
     @Override
@@ -66,3 +66,5 @@ public class MyRecipeTypeJsonParser {
     }
 }
 ```
+
+Other methods are optionally available, for in-detail functionalities, such as regrouping multiple recipes generated out of a single files, or supporting alternative recipe type IDs
