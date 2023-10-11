@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import mc.recraftors.dumpster.client.ClientDumpCommand;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientCommandSource;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.s2c.play.CommandTreeS2CPacket;
@@ -20,6 +21,7 @@ public abstract class ClientCommandsInjector {
 
     @Inject(method = "onCommandTree", at = @At("RETURN"))
     private void onCommandTreeInjector(CommandTreeS2CPacket packet, CallbackInfo ci) {
+        if (MinecraftClient.getInstance().isInSingleplayer()) return;
         ClientDumpCommand.register(this.commandDispatcher);
     }
 }

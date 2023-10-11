@@ -12,10 +12,10 @@
     "client.ClientPlayNetworkHandlerMixin"
   ],
   "server": [
-    "server.ServerCommandManagerMixin"
+    "server.ServerPlayerManagerMixin"
   ],
   "mixins": [
-    "PlayerManagerMixin",
+    "CommandManagerMixin",
     "RegistryMixin",
     "accessor.CuttingRecipeMixin",
     "accessor.SmithingRecipeMixin"
