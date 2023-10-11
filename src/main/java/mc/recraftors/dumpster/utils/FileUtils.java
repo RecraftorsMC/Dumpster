@@ -19,6 +19,7 @@ import java.util.stream.Stream;
 
 public final class FileUtils {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final String JSON_EXT = ".json";
 
     public static String getNow() {
         return getNow(LocalDateTime.now());
@@ -106,7 +107,7 @@ public final class FileUtils {
             if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
                 builder.append(File.separator).append(singleNameIdPath(type));
             }
-            builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(".json");
+            builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
             storeJson(object, builder.toString());
         } catch (IOException e) {
             Utils.LOGGER.error("An error occurred trying to dump data {}", id);
@@ -124,11 +125,33 @@ public final class FileUtils {
             if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
                 builder.append(File.separator).append(id.getNamespace());
             }
-            builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(".json");
+            builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
             storeJson(elem, builder.toString());
         } catch (IOException e) {
             Utils.LOGGER.error("An error occurred trying to dump data {}", id);
             i.incrementAndGet();
+        }
+    }
+
+    static boolean storeAdvancement(JsonObject o, Identifier id, LocalDateTime now, AtomicInteger i) {
+        try {
+            StringBuilder builder = new StringBuilder(ConfigUtils.dumpFileMainFolder());
+            if (ConfigUtils.doDumpFileOrganizeFolderByDate()) {
+                builder.append(File.separator).append(getNow(now));
+            }
+            builder.append(File.separator).append("advancements");
+            if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
+                builder.append(File.separator).append(id.getNamespace());
+            }
+            builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
+            storeJson(o, builder.toString());
+            return false;
+        } catch (IOException e) {
+            if (ConfigUtils.doErrorPrintStacktrace()) {
+                Utils.LOGGER.error("An error occurred trying to dump advancement {}", id, e);
+            }
+            i.incrementAndGet();
+            return true;
         }
     }
 

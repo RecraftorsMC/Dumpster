@@ -1,6 +1,5 @@
 package mc.recraftors.dumpster.utils;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import mc.recraftors.dumpster.recipes.RecipeJsonParser;
@@ -56,27 +55,6 @@ public final class Utils {
             return;
         }
         REGISTRIES.add(reg);
-    }
-
-    public static void jsonClearNull(JsonElement e) {
-        if (e == null || !(e.isJsonArray() || e.isJsonObject())) {
-            return;
-        }
-        if (e.isJsonObject()) {
-            Iterator<Map.Entry<String, JsonElement>> iter = e.getAsJsonObject().entrySet().iterator();
-            while (iter.hasNext()) {
-                Map.Entry<String, JsonElement> c = iter.next();
-                if (c.getValue() == null || c.getValue().isJsonNull()) iter.remove();
-                else jsonClearNull(c.getValue());
-            }
-        } else if (e.isJsonArray()) {
-            Iterator<JsonElement> iter = e.getAsJsonArray().iterator();
-            while (iter.hasNext()) {
-                JsonElement c = iter.next();
-                if (c == null || c.isJsonNull()) iter.remove();
-                else jsonClearNull(c);
-            }
-        }
     }
 
     public static int dumpRegistries(LocalDateTime now) {
@@ -165,38 +143,36 @@ public final class Utils {
         return parser;
     }
 
+    private static int processRecipe(Recipe<?> recipe, RecipeJsonParser parser, LocalDateTime now, AtomicInteger i) {
+        if (parser == null) return 1;
+        try {
+          RecipeJsonParser.InResult result = parser.in(recipe);
+          if (result == RecipeJsonParser.InResult.FAILURE) return 2;
+          if (result == RecipeJsonParser.InResult.IGNORED) return -1;
+          JsonObject o = parser.toJson();
+          if (o == null) return 2;
+          // noinspection OptionalGetWithoutIsPresent
+          Identifier type = RECIPE_PARSERS.keySet().stream().filter(k -> RECIPE_PARSERS.get(k).equals(parser)).findFirst().get();
+          Identifier id = Optional.ofNullable(parser.alternativeId()).orElse(recipe.getId());
+          FileUtils.storeRecipe(o, id, type, now, parser.isSpecial(), i);
+        } catch (Exception e) {
+            if (ConfigUtils.doErrorPrintStacktrace()) {
+                LOGGER.error("An error occurred while trying to dump recipe {}", recipe.getId(), e);
+            }
+            return 2;
+        }
+        return 0;
+    }
+
     private static Map<String, Set<Identifier>> dumpRecipes(World world, LocalDateTime now, AtomicInteger i) {
         Set<Identifier> nonParsableTypes = new HashSet<>();
         Set<Identifier> erroredRecipes = new HashSet<>();
         world.getRecipeManager().values().forEach(recipe -> {
             Identifier id = Registry.RECIPE_TYPE.getId(recipe.getType());
             RecipeJsonParser parser = getRecipeParser(recipe);
-            if (parser == null) {
-                nonParsableTypes.add(id);
-                return;
-            }
-            try {
-                RecipeJsonParser.InResult result = parser.in(recipe);
-                if (result == RecipeJsonParser.InResult.FAILURE) {
-                    erroredRecipes.add(recipe.getId());
-                }
-                if (result != RecipeJsonParser.InResult.SUCCESS) {
-                    return;
-                }
-                JsonObject o = parser.toJson();
-                if (o == null) {
-                    erroredRecipes.add(recipe.getId());
-                    return;
-                }
-                //noinspection OptionalGetWithoutIsPresent
-                id = RECIPE_PARSERS.keySet().stream().filter(k -> RECIPE_PARSERS.get(k).equals(parser)).findFirst().get();
-                FileUtils.storeRecipe(o, recipe.getId(), id, now, parser.isSpecial(), i);
-            } catch (Exception e) {
-                erroredRecipes.add(recipe.getId());
-                if (ConfigUtils.doErrorPrintStacktrace()) {
-                    LOGGER.error("An error occurred while trying to dump recipe {}", recipe.getId(), e);
-                }
-            }
+            int r = processRecipe(recipe, parser, now, i);
+            if (r == 2) erroredRecipes.add(recipe.getId());
+            else if (r == 1) nonParsableTypes.add(id);
         });
         RECIPE_PARSERS.values().forEach(RecipeJsonParser::cycle);
         nonParsableTypes.forEach(e -> LOGGER.error("Unable to parse recipes of type {}", e));
@@ -214,7 +190,7 @@ public final class Utils {
             LootTable table = manager.getTable(id);
             try {
                 JsonObject o = LootManager.toJson(table).getAsJsonObject();
-                jsonClearNull(o);
+                JsonUtils.jsonClearNull(o);
                 FileUtils.storeLootTable(o, id, now, i);
             } catch (JsonIOException|NullPointerException|IllegalStateException e) {
                 i.incrementAndGet();
@@ -225,22 +201,44 @@ public final class Utils {
         return Map.of("Loot Tables", errTables);
     }
 
-    public static int dumpData(World world, LocalDateTime now) {
+    private static Map<String, Set<Identifier>> dumpAdvancements(ServerWorld world, LocalDateTime now, AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
+        world.getServer().getAdvancementLoader().getAdvancements().forEach(adv -> {
+            JsonObject o = JsonUtils.advancementToJson(adv);
+            if (FileUtils.storeAdvancement(o, adv.getId(), now, i)) {
+                err.add(adv.getId());
+            }
+        });
+        if (!err.isEmpty()) return Map.of("Advancements", err);
+        return Map.of();
+    }
+
+    public static int dumpData(World world, LocalDateTime now, boolean tags, boolean recipes,
+                               boolean tables, boolean advancements) {
         AtomicInteger i = new AtomicInteger();
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
-        if (ConfigUtils.doDataDumpTags()) {
+        if (tags && ConfigUtils.doDataDumpTags()) {
             errMap.putAll(dumpTags(world, now, i));
         }
-        if (ConfigUtils.doDataDumpRecipes()) {
+        if (recipes && ConfigUtils.doDataDumpRecipes()) {
             errMap.putAll(dumpRecipes(world, now, i));
         }
-        if (ConfigUtils.doDumpLootTables() && world instanceof ServerWorld s) {
-            errMap.putAll(dumpLootTables(s, now, i));
+        if (world instanceof ServerWorld w) {
+            if (tables && ConfigUtils.doDumpLootTables()) {
+                errMap.putAll(dumpLootTables(w, now, i));
+            }
+            if (advancements && ConfigUtils.doDumpAdvancements()) {
+                errMap.putAll(dumpAdvancements(w, now, i));
+            }
         }
         if (i.get() > 0) {
             FileUtils.writeErrors(errMap);
         }
         return i.get();
+    }
+
+    public static int dumpData(World world, LocalDateTime now) {
+        return dumpData(world, now, true, true, true, true);
     }
 
     public static void debug() {

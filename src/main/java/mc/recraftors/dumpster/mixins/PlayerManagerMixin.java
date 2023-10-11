@@ -1,4 +1,4 @@
-package mc.recraftors.dumpster.mixins.server;
+package mc.recraftors.dumpster.mixins;
 
 import mc.recraftors.dumpster.utils.ConfigUtils;
 import mc.recraftors.dumpster.utils.FileUtils;
@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 
 @Environment(EnvType.SERVER)
 @Mixin(PlayerManager.class)
-public abstract class ServerPlayerManagerMixin {
+public abstract class PlayerManagerMixin {
     @Shadow public abstract MinecraftServer getServer();
 
     @Inject(method = "onDataPacksReloaded", at = @At("TAIL"))

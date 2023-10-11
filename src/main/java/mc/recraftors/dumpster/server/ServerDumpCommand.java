@@ -19,7 +19,12 @@ public final class ServerDumpCommand {
                 .requires(s -> s.hasPermissionLevel(2))
                 .executes(ServerDumpCommand::dumpAll)
                 .then(literal("data")
-                        .executes(ServerDumpCommand::dumpData))
+                        .executes(ServerDumpCommand::dumpData)
+                        .then(literal("tags").executes(c -> dumpData(c, true, false, false, false)))
+                        .then(literal("recipes").executes(c -> dumpData(c, false, true, false, false)))
+                        .then(literal("loot-tables").executes(c -> dumpData(c, false, false, true, false)))
+                        .then(literal("advancements").executes(c -> dumpData(c, false, false, false, true)))
+                )
                 .then(literal("registries")
                         .executes(ServerDumpCommand::dumpReg));
         if (ConfigUtils.isDebugEnabled()) {
@@ -42,6 +47,15 @@ public final class ServerDumpCommand {
     private static int dumpData(CommandContext<ServerCommandSource> context) {
         ServerCommandSource source = context.getSource();
         int n = Utils.dumpData(source.getWorld(), LocalDateTime.now());
+        if (n > 0) {
+            error(n, source);
+        } else success(source);
+        return n;
+    }
+
+    private static int dumpData(CommandContext<ServerCommandSource> context, boolean b1, boolean b2, boolean b3, boolean b4) {
+        ServerCommandSource source = context.getSource();
+        int n = Utils.dumpData(source.getWorld(), LocalDateTime.now(), b1, b2, b3, b4);
         if (n > 0) {
             error(n, source);
         } else success(source);
