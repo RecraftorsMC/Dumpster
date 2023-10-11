@@ -2,7 +2,8 @@
 
 Allows you do dump, at will
 * your game's registries, with the command `/dump registries`
-* your game's data, including tags and recipes, with the command `/dump data`
+* your game's data, including tags, recipes and more, with the command `/dump data`
+* more specific data, such as either tags, recipes, loot tables, etc, with the command `/dump data <type>`
 * both of the above, with the pure `/dump` command
 
 ## Config
