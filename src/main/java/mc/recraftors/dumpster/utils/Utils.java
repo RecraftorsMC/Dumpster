@@ -213,20 +213,21 @@ public final class Utils {
         return Map.of();
     }
 
-    public static int dumpData(World world, LocalDateTime now) {
+    public static int dumpData(World world, LocalDateTime now, boolean tags, boolean recipes,
+                               boolean tables, boolean advancements) {
         AtomicInteger i = new AtomicInteger();
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
-        if (ConfigUtils.doDataDumpTags()) {
+        if (tags && ConfigUtils.doDataDumpTags()) {
             errMap.putAll(dumpTags(world, now, i));
         }
-        if (ConfigUtils.doDataDumpRecipes()) {
+        if (recipes && ConfigUtils.doDataDumpRecipes()) {
             errMap.putAll(dumpRecipes(world, now, i));
         }
         if (world instanceof ServerWorld w) {
-            if (ConfigUtils.doDumpLootTables()) {
+            if (tables && ConfigUtils.doDumpLootTables()) {
                 errMap.putAll(dumpLootTables(w, now, i));
             }
-            if (ConfigUtils.doDumpAdvancements()) {
+            if (advancements && ConfigUtils.doDumpAdvancements()) {
                 errMap.putAll(dumpAdvancements(w, now, i));
             }
         }
@@ -234,6 +235,10 @@ public final class Utils {
             FileUtils.writeErrors(errMap);
         }
         return i.get();
+    }
+
+    public static int dumpData(World world, LocalDateTime now) {
+        return dumpData(world, now, true, true, true, true);
     }
 
     public static void debug() {
