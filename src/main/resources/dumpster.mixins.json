@@ -18,6 +18,11 @@
     "CommandManagerMixin",
     "RegistryMixin",
     "accessor.CuttingRecipeMixin",
-    "accessor.SmithingRecipeMixin"
+    "accessor.SmithingRecipeMixin",
+    "providers.int_providers.ClampedMixin",
+    "providers.int_providers.ClampedNormalMixin",
+    "providers.int_providers.ConstantMixin",
+    "providers.int_providers.IntProviderMixin",
+    "providers.int_providers.WeightedListMixin"
   ]
 }
