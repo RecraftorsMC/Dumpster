@@ -12,6 +12,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -213,8 +214,24 @@ public final class Utils {
         return Map.of();
     }
 
+    private static Map<String, Set<Identifier>> dumpDimensions(ServerWorld world, LocalDateTime now, AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
+        world.getServer().getWorlds().forEach(w -> {
+            if (dumpDim(w, now, i)) {
+                err.add(w.getDimensionKey().getValue());
+            }
+        });
+        if (!err.isEmpty()) return Map.of("Dimension Types", err);
+        return Map.of();
+    }
+
+    private static boolean dumpDim(World world, LocalDateTime now, AtomicInteger i) {
+        DimensionType dim = world.getDimension();
+        return FileUtils.storeDimension(JsonUtils.dimensionJson(dim), world.getDimensionKey().getValue(), now, i);
+    }
+
     public static int dumpData(World world, LocalDateTime now, boolean tags, boolean recipes,
-                               boolean tables, boolean advancements) {
+                               boolean tables, boolean advancements, boolean dimensionTypes) {
         AtomicInteger i = new AtomicInteger();
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
         if (tags && ConfigUtils.doDataDumpTags()) {
@@ -230,6 +247,13 @@ public final class Utils {
             if (advancements && ConfigUtils.doDumpAdvancements()) {
                 errMap.putAll(dumpAdvancements(w, now, i));
             }
+            if (dimensionTypes && ConfigUtils.doDumpDimensionTypes()) {
+                errMap.putAll(dumpDimensions(w, now, i));
+            }
+        } else {
+            if (dimensionTypes && ConfigUtils.doDumpDimensionTypes() && dumpDim(world, now, i)) {
+                errMap.put("Dimension Types", Set.of(world.getDimensionKey().getValue()));
+            }
         }
         if (i.get() > 0) {
             FileUtils.writeErrors(errMap);
@@ -238,7 +262,7 @@ public final class Utils {
     }
 
     public static int dumpData(World world, LocalDateTime now) {
-        return dumpData(world, now, true, true, true, true);
+        return dumpData(world, now, true, true, true, true, true);
     }
 
     public static void debug() {

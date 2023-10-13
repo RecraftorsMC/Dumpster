@@ -155,6 +155,28 @@ public final class FileUtils {
         }
     }
 
+    static boolean storeDimension(JsonObject o, Identifier id, LocalDateTime now, AtomicInteger i) {
+        try {
+            StringBuilder builder = new StringBuilder(ConfigUtils.dumpFileMainFolder());
+            if (ConfigUtils.doDumpFileOrganizeFolderByDate()) {
+                builder.append(File.separator).append(getNow(now));
+            }
+            builder.append(File.separator).append("dimension_type");
+            if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
+                builder.append(File.separator).append(id.getNamespace());
+            }
+            builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
+            storeJson(o, builder.toString());
+            return false;
+        } catch (IOException e) {
+            if (ConfigUtils.doErrorPrintStacktrace()) {
+                Utils.LOGGER.error("An error occurred trying to dump dimension type {}", id, e);
+            }
+            i.incrementAndGet();
+            return true;
+        }
+    }
+
     static void writeErrors(Map<String, Set<Identifier>> setMap) {
         try {
             Path p = Path.of(ConfigUtils.dumpFileMainFolder(), "errors.txt");

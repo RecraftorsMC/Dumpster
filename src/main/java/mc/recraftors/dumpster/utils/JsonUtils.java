@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementCriterion;
+import net.minecraft.world.dimension.DimensionType;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -62,6 +63,29 @@ public final class JsonUtils {
             req.add(reqX);
         }
         main.add("requirements", req);
+        return main;
+    }
+
+    public static JsonObject dimensionJson(DimensionType dim) {
+        JsonObject main = new JsonObject();
+        main.add("ultrawarm", new JsonPrimitive(dim.ultrawarm()));
+        main.add("natural", new JsonPrimitive(dim.natural()));
+        main.add("coordinate_scale", new JsonPrimitive(dim.coordinateScale()));
+        main.add("has_skylight", new JsonPrimitive(dim.hasSkyLight()));
+        main.add("has_ceiling", new JsonPrimitive(dim.hasCeiling()));
+        main.add("ambient_light", new JsonPrimitive(dim.ambientLight()));
+        if (dim.fixedTime().isPresent()) main.add("fixed_time", new JsonPrimitive(dim.fixedTime().getAsLong()));
+        main.add("monster_spawn_light_level", ((Objectable)dim.monsterSpawnLightTest()).toJson());
+        main.add("monster_spawn_block_light_limit", new JsonPrimitive(dim.monsterSpawnBlockLightLimit()));
+        main.add("piglin_safe", new JsonPrimitive(dim.piglinSafe()));
+        main.add("bed_works", new JsonPrimitive(dim.bedWorks()));
+        main.add("respawn_anchor_works", new JsonPrimitive(dim.respawnAnchorWorks()));
+        main.add("has_raids", new JsonPrimitive(dim.hasRaids()));
+        main.add("logical_height", new JsonPrimitive(dim.logicalHeight()));
+        main.add("min_y", new JsonPrimitive(dim.minY()));
+        main.add("height", new JsonPrimitive(dim.height()));
+        main.add("infiniburn", new JsonPrimitive(dim.infiniburn().id().toString()));
+        main.add("effects", new JsonPrimitive(dim.effects().toString()));
         return main;
     }
 }
