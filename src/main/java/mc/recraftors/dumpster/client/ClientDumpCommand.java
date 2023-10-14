@@ -22,7 +22,7 @@ import static mc.recraftors.dumpster.client.ClientLiteralArgumentBuilder.literal
 
 public final class ClientDumpCommand {
     public static void register(CommandDispatcher<ClientCommandSource> dispatcher) {
-        CommandNode<ClientCommandSource> dump = dispatcher.findNode(List.of("dump"));
+        CommandNode<?> dump = dispatcher.findNode(List.of("dump"));
         LiteralArgumentBuilder<ClientCommandSource> builder = literal(dump == null ? "dump" : "dump-client")
                 .executes(ClientDumpCommand::dumpAll)
                 .then(literal("data").executes(ClientDumpCommand::dumpData))
@@ -35,8 +35,7 @@ public final class ClientDumpCommand {
 
     private static int dumpAll(CommandContext<ClientCommandSource> context) {
         FileUtils.clearIfNeeded();
-        RegistryKey<World> key = context.getSource().getWorldKeys().iterator().next();
-        World world = (World) Registry.REGISTRIES.get(key.getValue()).iterator().next();
+        World world = MinecraftClient.getInstance().world;
         LocalDateTime now = LocalDateTime.now();
         int n = Utils.dumpRegistries(now) + Utils.dumpData(world, now);
         if (n > 0) {
