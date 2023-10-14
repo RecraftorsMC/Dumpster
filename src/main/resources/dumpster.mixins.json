@@ -9,6 +9,7 @@
   "client": [
     "client.ClientCommandsInjector",
     "client.ClientGameStartMixin",
+    "client.ClientPlayerEntityMixin",
     "client.ClientPlayNetworkHandlerMixin"
   ],
   "server": [
