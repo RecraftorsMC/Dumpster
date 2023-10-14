@@ -38,6 +38,7 @@ public class ClientPlayerEntityMixin {
             cancellable = true
     )
     private void onSendCommandBeforeSendInjector(ChatMessageSigner signer, String command, Text preview, CallbackInfo ci) {
+        if (MinecraftClient.getInstance().isInSingleplayer()) return;
         int i1 = 0;
         if (command.startsWith("dump-client")) i1 = 2;
         else if (command.startsWith("dump")) i1 = 1;
