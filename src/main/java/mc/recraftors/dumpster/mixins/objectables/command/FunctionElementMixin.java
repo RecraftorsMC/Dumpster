@@ -12,6 +12,6 @@ public abstract class FunctionElementMixin implements IStringable {
 
     @Override
     public String dumpster$stringify() {
-        return this.function.toString();
+        return ((IStringable)this.function).dumpster$stringify();
     }
 }

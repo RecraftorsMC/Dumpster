@@ -238,7 +238,7 @@ public final class Utils {
             Optional<CommandFunction> oF = world.getServer().getCommandFunctionManager().getFunction(id);
             if (oF.isEmpty()) return;
             CommandFunction function = oF.get();
-            String s = String.format("\n",Arrays.stream(function.getElements()).map(IStringable.class::cast).map(IStringable::dumpster$stringify).toArray());
+            String s = String.join("\n", List.of(Arrays.stream(function.getElements()).map(IStringable.class::cast).map(IStringable::dumpster$stringify).toArray(String[]::new)));
             if (FileUtils.storeFunction(s, function.getId(), now, i)) {
                 err.add(function.getId());
             }

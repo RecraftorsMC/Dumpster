@@ -15,7 +15,10 @@ public abstract class LazyContainerMixin implements IStringable {
     @Override
     public String dumpster$stringify() {
         StringBuilder builder = new StringBuilder();
-        this.function.ifPresent(commandFunction -> Arrays.stream(commandFunction.getElements()).forEach(builder::append));
+        this.function.ifPresent(
+                commandFunction -> Arrays.stream(commandFunction.getElements())
+                        .forEach(e -> builder.append(((IStringable)e).dumpster$stringify()).append("\n"))
+        );
         return builder.toString();
     }
 }

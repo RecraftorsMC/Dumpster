@@ -14,6 +14,6 @@ public abstract class CommandElementMixin implements IStringable {
 
     @Override
     public String dumpster$stringify() {
-        return this.parsed.toString();
+        return ((IStringable)this.parsed).dumpster$stringify();
     }
 }

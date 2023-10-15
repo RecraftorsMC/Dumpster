@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-@Mixin(ParseResults.class)
+@Mixin(value = ParseResults.class, remap = false)
 public abstract class ParseResultsMixin implements IStringable {
     @Shadow @Final private ImmutableStringReader reader;
 
