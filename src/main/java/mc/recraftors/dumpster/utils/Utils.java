@@ -4,10 +4,12 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import mc.recraftors.dumpster.recipes.RecipeJsonParser;
 import mc.recraftors.dumpster.recipes.TargetRecipeType;
+import mc.recraftors.dumpster.utils.accessors.IStringable;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.loot.LootManager;
 import net.minecraft.loot.LootTable;
 import net.minecraft.recipe.Recipe;
+import net.minecraft.server.function.CommandFunction;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
@@ -230,8 +232,23 @@ public final class Utils {
         return FileUtils.storeDimension(JsonUtils.dimensionJson(dim), world.getDimensionKey().getValue(), now, i);
     }
 
-    public static int dumpData(World world, LocalDateTime now, boolean tags, boolean recipes,
-                               boolean tables, boolean advancements, boolean dimensionTypes) {
+    private static Map<String, Set<Identifier>> dumpFunctions(ServerWorld world, LocalDateTime now, AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
+        world.getServer().getCommandFunctionManager().getAllFunctions().forEach(id -> {
+            Optional<CommandFunction> oF = world.getServer().getCommandFunctionManager().getFunction(id);
+            if (oF.isEmpty()) return;
+            CommandFunction function = oF.get();
+            String s = String.join("\n", List.of(Arrays.stream(function.getElements()).map(IStringable.class::cast).map(IStringable::dumpster$stringify).toArray(String[]::new)));
+            if (FileUtils.storeFunction(s, function.getId(), now, i)) {
+                err.add(function.getId());
+            }
+        });
+        if (!err.isEmpty()) return Map.of("Functions", err);
+        return Map.of();
+    }
+
+    public static int dumpData(World world, LocalDateTime now, boolean tags, boolean recipes, boolean tables,
+                               boolean advancements, boolean dimensionTypes, boolean functions) {
         AtomicInteger i = new AtomicInteger();
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
         if (tags && ConfigUtils.doDataDumpTags()) {
@@ -250,6 +267,9 @@ public final class Utils {
             if (dimensionTypes && ConfigUtils.doDumpDimensionTypes()) {
                 errMap.putAll(dumpDimensions(w, now, i));
             }
+            if (functions && ConfigUtils.doDumpFunctions()) {
+                errMap.putAll(dumpFunctions(w, now, i));
+            }
         } else {
             if (dimensionTypes && ConfigUtils.doDumpDimensionTypes() && dumpDim(world, now, i)) {
                 errMap.put("Dimension Types", Set.of(world.getDimensionKey().getValue()));
@@ -262,7 +282,7 @@ public final class Utils {
     }
 
     public static int dumpData(World world, LocalDateTime now) {
-        return dumpData(world, now, true, true, true, true, true);
+        return dumpData(world, now, true, true, true, true, true, true);
     }
 
     public static void debug() {

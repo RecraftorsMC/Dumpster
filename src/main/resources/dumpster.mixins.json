@@ -20,10 +20,14 @@
     "RegistryMixin",
     "accessor.CuttingRecipeMixin",
     "accessor.SmithingRecipeMixin",
-    "providers.int_providers.ClampedMixin",
-    "providers.int_providers.ClampedNormalMixin",
-    "providers.int_providers.ConstantMixin",
-    "providers.int_providers.IntProviderMixin",
-    "providers.int_providers.WeightedListMixin"
+    "objectables.command.CommandElementMixin",
+    "objectables.command.FunctionElementMixin",
+    "objectables.command.LazyContainerMixin",
+    "objectables.command.ParseResultsMixin",
+    "objectables.int_providers.ClampedMixin",
+    "objectables.int_providers.ClampedNormalMixin",
+    "objectables.int_providers.ConstantMixin",
+    "objectables.int_providers.IntProviderMixin",
+    "objectables.int_providers.WeightedListMixin"
   ]
 }

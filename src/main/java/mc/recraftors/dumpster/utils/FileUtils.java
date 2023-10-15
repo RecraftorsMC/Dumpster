@@ -21,6 +21,12 @@ public final class FileUtils {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final String JSON_EXT = ".json";
 
+    private static void err(String target, Identifier id, Exception e) {
+        if (ConfigUtils.doErrorPrintStacktrace()) {
+            Utils.LOGGER.error("An error occurred trying to dump {} {}", target, id, e);
+        }
+    }
+
     public static String getNow() {
         return getNow(LocalDateTime.now());
     }
@@ -31,6 +37,22 @@ public final class FileUtils {
 
     public static String singleNameIdPath(Identifier id) {
         return id.getNamespace() + "_" + String.join("-", id.getPath().split("/"));
+    }
+
+    public static StringBuilder pathBuilder(LocalDateTime now, String target, Identifier type) {
+        return pathBuilder(now, target, singleNameIdPath(type));
+    }
+
+    public static StringBuilder pathBuilder(LocalDateTime now, String target, String type) {
+        StringBuilder builder = new StringBuilder(ConfigUtils.dumpFileMainFolder());
+        if (ConfigUtils.doDumpFileOrganizeFolderByDate()) {
+            builder.append(File.separator).append(getNow(now));
+        }
+        builder.append(File.separator).append(target);
+        if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
+            builder.append(File.separator).append(type);
+        }
+        return builder;
     }
 
     public static void clearIfNeeded() {
@@ -70,28 +92,25 @@ public final class FileUtils {
 
     static void storeTag(Collection<RegistryEntry> entries, Identifier id, Identifier name, LocalDateTime now, AtomicInteger i) {
         try {
-            StringBuilder builder = new StringBuilder(ConfigUtils.dumpFileMainFolder());
-            if (ConfigUtils.doDumpFileOrganizeFolderByDate()) {
-                builder.append(File.separator).append(getNow(now));
-            }
-            builder.append(File.separator).append("tags");
-            if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
-                builder.append(File.separator).append(name.getNamespace());
-            }
+            StringBuilder builder = pathBuilder(now, "tags", name);
             builder.append(File.separator).append(Utils.normalizeIdPath(id));
             writeEntries(builder.toString(), name, entries);
         } catch (IOException e) {
-            Utils.LOGGER.error("An error occurred trying to dump tag {} / {}", id, name, e);
+            err("tag "+id, name, e);
             i.incrementAndGet();
         }
     }
 
-    static void storeJson(JsonObject e, String s) throws IOException {
-        File f = new File(s);
+    static void storeRaw(String s1, String s2) throws IOException {
+        File f = new File(s2);
         Files.createDirectories(f.getParentFile().toPath());
         try (FileWriter w = new FileWriter(f)) {
-            w.write(GSON.toJson(e));
+            w.write(s1);
         }
+    }
+
+    static void storeJson(JsonObject e, String s) throws IOException {
+        storeRaw(GSON.toJson(e), s);
     }
 
     static void storeRecipe(JsonObject object, Identifier id, Identifier type, LocalDateTime now, boolean isSpecial, AtomicInteger i) {
@@ -110,46 +129,30 @@ public final class FileUtils {
             builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
             storeJson(object, builder.toString());
         } catch (IOException e) {
-            Utils.LOGGER.error("An error occurred trying to dump data {}", id);
+            err("recipe", id, e);
             i.incrementAndGet();
         }
     }
 
     static void storeLootTable(JsonObject elem, Identifier id, LocalDateTime now, AtomicInteger i) {
         try {
-            StringBuilder builder = new StringBuilder(ConfigUtils.dumpFileMainFolder());
-            if (ConfigUtils.doDumpFileOrganizeFolderByDate()) {
-                builder.append(File.separator).append(getNow(now));
-            }
-            builder.append(File.separator).append("loot_tables");
-            if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
-                builder.append(File.separator).append(id.getNamespace());
-            }
+            StringBuilder builder = pathBuilder(now, "loot_tables", id.getNamespace());
             builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
             storeJson(elem, builder.toString());
         } catch (IOException e) {
-            Utils.LOGGER.error("An error occurred trying to dump data {}", id);
+            err("loot table", id, e);
             i.incrementAndGet();
         }
     }
 
     static boolean storeAdvancement(JsonObject o, Identifier id, LocalDateTime now, AtomicInteger i) {
         try {
-            StringBuilder builder = new StringBuilder(ConfigUtils.dumpFileMainFolder());
-            if (ConfigUtils.doDumpFileOrganizeFolderByDate()) {
-                builder.append(File.separator).append(getNow(now));
-            }
-            builder.append(File.separator).append("advancements");
-            if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
-                builder.append(File.separator).append(id.getNamespace());
-            }
+            StringBuilder builder = pathBuilder(now, "advancements", id.getNamespace());
             builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
             storeJson(o, builder.toString());
             return false;
         } catch (IOException e) {
-            if (ConfigUtils.doErrorPrintStacktrace()) {
-                Utils.LOGGER.error("An error occurred trying to dump advancement {}", id, e);
-            }
+            err("advancement", id, e);
             i.incrementAndGet();
             return true;
         }
@@ -157,21 +160,25 @@ public final class FileUtils {
 
     static boolean storeDimension(JsonObject o, Identifier id, LocalDateTime now, AtomicInteger i) {
         try {
-            StringBuilder builder = new StringBuilder(ConfigUtils.dumpFileMainFolder());
-            if (ConfigUtils.doDumpFileOrganizeFolderByDate()) {
-                builder.append(File.separator).append(getNow(now));
-            }
-            builder.append(File.separator).append("dimension_type");
-            if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
-                builder.append(File.separator).append(id.getNamespace());
-            }
+            StringBuilder builder = pathBuilder(now, "dimension_type", id.getNamespace());
             builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
             storeJson(o, builder.toString());
             return false;
         } catch (IOException e) {
-            if (ConfigUtils.doErrorPrintStacktrace()) {
-                Utils.LOGGER.error("An error occurred trying to dump dimension type {}", id, e);
-            }
+            err("dimension type", id, e);
+            i.incrementAndGet();
+            return true;
+        }
+    }
+
+    static boolean storeFunction(String f, Identifier id, LocalDateTime now, AtomicInteger i) {
+        try {
+            StringBuilder builder = pathBuilder(now, "functions", id.getNamespace());
+            builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(".mcfunction");
+            storeRaw(f, builder.toString());
+            return false;
+        } catch (IOException e) {
+            err("function", id, e);
             i.incrementAndGet();
             return true;
         }

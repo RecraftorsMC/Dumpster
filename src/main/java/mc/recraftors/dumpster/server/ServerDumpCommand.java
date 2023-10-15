@@ -22,11 +22,12 @@ public final class ServerDumpCommand {
                 .executes(ServerDumpCommand::dumpAll)
                 .then(literal("data")
                         .executes(ServerDumpCommand::dumpData)
-                        .then(literal("tags").executes(c -> dumpData(c, T, F, F, F, F)))
-                        .then(literal("recipes").executes(c -> dumpData(c, F, T, F, F, F)))
-                        .then(literal("loot-tables").executes(c -> dumpData(c, F, F, T, F, F)))
-                        .then(literal("advancements").executes(c -> dumpData(c, F, F, F, T, F)))
-                        .then(literal("dimension-types").executes(c -> dumpData(c, F, F, F, F, T)))
+                        .then(literal("advancements").executes(c -> dumpData(c, F, F, F, T, F, F)))
+                        .then(literal("dimension-types").executes(c -> dumpData(c, F, F, F, F, T, F)))
+                        .then(literal("functions").executes(c -> dumpData(c, F, F, F, F, F, T)))
+                        .then(literal("loot-tables").executes(c -> dumpData(c, F, F, T, F, F, F)))
+                        .then(literal("recipes").executes(c -> dumpData(c, F, T, F, F, F, F)))
+                        .then(literal("tags").executes(c -> dumpData(c, T, F, F, F, F, F)))
                 )
                 .then(literal("registries")
                         .executes(ServerDumpCommand::dumpReg));
@@ -56,9 +57,9 @@ public final class ServerDumpCommand {
         return n;
     }
 
-    private static int dumpData(CommandContext<ServerCommandSource> context, boolean b1, boolean b2, boolean b3, boolean b4, boolean b5) {
+    private static int dumpData(CommandContext<ServerCommandSource> context, boolean b1, boolean b2, boolean b3, boolean b4, boolean b5, boolean b6) {
         ServerCommandSource source = context.getSource();
-        int n = Utils.dumpData(source.getWorld(), LocalDateTime.now(), b1, b2, b3, b4, b5);
+        int n = Utils.dumpData(source.getWorld(), LocalDateTime.now(), b1, b2, b3, b4, b5, b6);
         if (n > 0) {
             error(n, source);
         } else success(source);
