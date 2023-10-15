@@ -1,4 +1,4 @@
-package mc.recraftors.dumpster.mixins.providers.int_providers;
+package mc.recraftors.dumpster.mixins.objectables.int_providers;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
