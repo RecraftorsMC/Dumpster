@@ -173,7 +173,7 @@ public final class FileUtils {
 
     static boolean storeFunction(String f, Identifier id, LocalDateTime now, AtomicInteger i) {
         try {
-            StringBuilder builder = pathBuilder(now, "functions", id);
+            StringBuilder builder = pathBuilder(now, "functions", id.getNamespace());
             builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(".mcfunction");
             storeRaw(f, builder.toString());
             return false;
