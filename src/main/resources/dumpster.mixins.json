@@ -3,6 +3,7 @@
   "minVersion": "0.8",
   "package": "mc.recraftors.dumpster.mixins",
   "compatibilityLevel": "JAVA_17",
+  "plugin": "mc.recraftors.dumpster.mixins.MixinConfigPlugin",
   "injectors": {
     "defaultRequire": 1
   },
