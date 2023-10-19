@@ -8,9 +8,11 @@ import mc.recraftors.dumpster.utils.accessors.IStringable;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.loot.LootManager;
 import net.minecraft.loot.LootTable;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.server.function.CommandFunction;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.structure.StructureTemplate;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
@@ -252,8 +254,36 @@ public final class Utils {
         return Map.of();
     }
 
+    private static Map<String, Set<Identifier>> dumpStructureTemplates(ServerWorld world, LocalDateTime now, AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
+        Iterator<Identifier> iter = world.getStructureTemplateManager().streamTemplates().iterator();
+        Identifier id = new Identifier("a");
+        while (id != null) {
+            try {
+                if (!iter.hasNext()) break;
+                id = iter.next();
+                Optional<StructureTemplate> opt = world.getStructureTemplateManager().getTemplate(id);
+                if (opt.isEmpty()) {
+                    err.add(id);
+                    i.incrementAndGet();
+                    continue;
+                }
+                StructureTemplate template = opt.get();
+                NbtCompound nbt = template.writeNbt(new NbtCompound());
+                if (FileUtils.storeStructureTemplate(nbt, id, now, i)) {
+                    err.add(id);
+                }
+            } catch (Exception e) {
+                LOGGER.error(e);
+            }
+        }
+        if (!err.isEmpty()) return Map.of("Structure Templates", err);
+        return Map.of();
+    }
+
     public static int dumpData(World world, LocalDateTime now, boolean tags, boolean recipes, boolean tables,
-                               boolean advancements, boolean dimensionTypes, boolean functions) {
+                               boolean advancements, boolean dimensionTypes, boolean functions, boolean templates) {
+        lock.lock();
         AtomicInteger i = new AtomicInteger();
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
         if (tags && ConfigUtils.doDataDumpTags()) {

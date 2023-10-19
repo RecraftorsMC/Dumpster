@@ -2,15 +2,15 @@ package mc.recraftors.dumpster.utils;
 
 import com.google.gson.*;
 import mc.recraftors.dumpster.recipes.RecipeJsonParser;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -113,6 +113,14 @@ public final class FileUtils {
         storeRaw(GSON.toJson(e), s);
     }
 
+    static void storeNbt(NbtElement e, String s) throws IOException {
+        File f = new File(s);
+        Files.createDirectories(f.getParentFile().toPath());
+        try (DataOutputStream stream = new DataOutputStream(new FileOutputStream(s))) {
+            e.write(stream);
+        }
+    }
+
     static void storeRecipe(JsonObject object, Identifier id, Identifier type, LocalDateTime now, boolean isSpecial, AtomicInteger i) {
         try {
             StringBuilder builder = new StringBuilder(ConfigUtils.dumpFileMainFolder());
@@ -179,6 +187,19 @@ public final class FileUtils {
             return false;
         } catch (IOException e) {
             err("function", id, e);
+            i.incrementAndGet();
+            return true;
+        }
+    }
+
+    static boolean storeStructureTemplate(NbtElement nbt, Identifier id, LocalDateTime now, AtomicInteger i) {
+        try {
+            StringBuilder builder = pathBuilder(now, "structures", id.getNamespace());
+            builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(".nbt");
+            storeNbt(nbt, builder.toString());
+            return false;
+        } catch (IOException e) {
+            err("structure_template", id, e);
             i.incrementAndGet();
             return true;
         }

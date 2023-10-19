@@ -1,11 +1,9 @@
 package mc.recraftors.dumpster.utils;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementCriterion;
+import net.minecraft.nbt.*;
 import net.minecraft.world.dimension.DimensionType;
 
 import java.util.Iterator;
@@ -13,6 +11,31 @@ import java.util.Map;
 
 public final class JsonUtils {
     private JsonUtils() {}
+
+    /**
+     * Generates a JSON equivalent for the provided Nbt element.
+     * @param nbt The Nbt to create a Json element for
+     * @return The generated Json element matching the provided Nbt.
+     */
+    public static JsonElement asJson(NbtElement nbt) {
+        if (nbt == null) {
+            return JsonNull.INSTANCE;
+        }
+        if (nbt instanceof NbtString s) return new JsonPrimitive(s.asString());
+        if (nbt instanceof NbtByte b) return new JsonPrimitive(b.byteValue() == 1);
+        if (nbt instanceof AbstractNbtNumber n) return new JsonPrimitive(n.numberValue());
+        if (nbt instanceof AbstractNbtList<?> l) {
+            JsonArray arr =  new JsonArray();
+            l.stream().map(JsonUtils::asJson).forEach(arr::add);
+            return arr;
+        }
+        if (nbt instanceof NbtCompound c) {
+            JsonObject o = new JsonObject();
+            c.getKeys().forEach(k -> o.add(k, asJson(c.get(k))));
+            return o;
+        }
+        return null;
+    }
 
     /**
      * Clears all {@code null} values or instances of {@code JsonNull} in the
