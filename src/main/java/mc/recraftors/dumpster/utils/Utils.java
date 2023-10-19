@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public final class Utils {
     public static final String MOD_ID = "dumpster";
@@ -30,6 +32,7 @@ public final class Utils {
     public static final String ERROR_TOAST_TITLE = "dumpster.toast.error.title";
     public static final String ERROR_TOAST_DESC = "dumpster.toast.error.desc";
 
+    public static final Lock lock = new ReentrantLock();
     private static final Collection<Registry<?>> REGISTRIES = new LinkedHashSet<>();
     private static final Map<Identifier, RecipeJsonParser> RECIPE_PARSERS;
 
@@ -61,6 +64,7 @@ public final class Utils {
     }
 
     public static int dumpRegistries(LocalDateTime now) {
+        lock.lock();
         AtomicInteger i = new AtomicInteger();
         Set<Identifier> err = new HashSet<>();
         for (Registry<?> reg : REGISTRIES) {
@@ -91,6 +95,7 @@ public final class Utils {
         if (i.get() > 0) {
             FileUtils.writeErrors(Map.of("Registries", err));
         }
+        lock.unlock();
         return i.get();
     }
 
@@ -270,6 +275,9 @@ public final class Utils {
             if (functions && ConfigUtils.doDumpFunctions()) {
                 errMap.putAll(dumpFunctions(w, now, i));
             }
+            if (templates && ConfigUtils.doDumpStructureTemplates()) {
+                errMap.putAll(dumpStructureTemplates(w, now, i));
+            }
         } else {
             if (dimensionTypes && ConfigUtils.doDumpDimensionTypes() && dumpDim(world, now, i)) {
                 errMap.put("Dimension Types", Set.of(world.getDimensionKey().getValue()));
@@ -278,11 +286,12 @@ public final class Utils {
         if (i.get() > 0) {
             FileUtils.writeErrors(errMap);
         }
+        lock.unlock();
         return i.get();
     }
 
     public static int dumpData(World world, LocalDateTime now) {
-        return dumpData(world, now, true, true, true, true, true, true);
+        return dumpData(world, now, true, true, true, true, true, true, true);
     }
 
     public static void debug() {
