@@ -21,15 +21,33 @@
     "server": [
       "mc.recraftors.dumpster.server.DumpsterServer"
     ],
+    "carver-dump": [
+      "mc.recraftors.dumpster.parsers.carvers.CaveCarverConfigParser",
+      "mc.recraftors.dumpster.parsers.carvers.RavineCarverConfigParser"
+    ],
     "recipe-dump": [
-      "mc.recraftors.dumpster.recipes.BlastingJsonParser",
-      "mc.recraftors.dumpster.recipes.CampfireCookingJsonParser",
-      "mc.recraftors.dumpster.recipes.ShapedCraftingJsonParser",
-      "mc.recraftors.dumpster.recipes.ShapelessCraftingJsonParser",
-      "mc.recraftors.dumpster.recipes.SmeltingJsonParser",
-      "mc.recraftors.dumpster.recipes.SmithingJsonParser",
-      "mc.recraftors.dumpster.recipes.SmokingJsonParser",
-      "mc.recraftors.dumpster.recipes.StoneCuttingJsonParser"
+      "mc.recraftors.dumpster.parsers.recipes.BlastingJsonParser",
+      "mc.recraftors.dumpster.parsers.recipes.CampfireCookingJsonParser",
+      "mc.recraftors.dumpster.parsers.recipes.ShapedCraftingJsonParser",
+      "mc.recraftors.dumpster.parsers.recipes.ShapelessCraftingJsonParser",
+      "mc.recraftors.dumpster.parsers.recipes.SmeltingJsonParser",
+      "mc.recraftors.dumpster.parsers.recipes.SmithingJsonParser",
+      "mc.recraftors.dumpster.parsers.recipes.SmokingJsonParser",
+      "mc.recraftors.dumpster.parsers.recipes.StoneCuttingJsonParser"
+    ],
+    "feature-dump": [
+      "mc.recraftors.dumpster.parsers.features.BasaltColumnJsonParser",
+      "mc.recraftors.dumpster.parsers.features.BlockColumnJsonParser",
+      "mc.recraftors.dumpster.parsers.features.BlockPileJsonParser",
+      "mc.recraftors.dumpster.parsers.features.CountJsonParser",
+      "mc.recraftors.dumpster.parsers.features.DefaultJsonParser",
+      "mc.recraftors.dumpster.parsers.features.DeltaJsonParser",
+      "mc.recraftors.dumpster.parsers.features.DiskJsonParser",
+      "mc.recraftors.dumpster.parsers.features.DripstoneClusterJsonParser",
+      "mc.recraftors.dumpster.parsers.features.EmeraldOreJsonParser",
+      "mc.recraftors.dumpster.parsers.features.EndGatewayJsonParser",
+      "mc.recraftors.dumpster.parsers.features.EndSpikeJsonParser",
+      "mc.recraftors.dumpster.parsers.features.FillLayerJsonParser"
     ]
   },
   "mixins": [

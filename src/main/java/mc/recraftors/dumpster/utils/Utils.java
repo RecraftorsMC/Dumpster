@@ -14,8 +14,10 @@ import net.minecraft.server.function.CommandFunction;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.structure.StructureTemplate;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
+import net.minecraft.world.biome.Biome;
 import net.minecraft.world.dimension.DimensionType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -281,8 +283,18 @@ public final class Utils {
         return Map.of();
     }
 
+    private static Map<String, Set<Identifier>> dumpBiomes() {
+        Set<Identifier> err = new HashSet<>();
+        BuiltinRegistries.DYNAMIC_REGISTRY_MANAGER.getManaged(Registry.BIOME_KEY).getEntrySet().forEach(e -> {
+            Identifier id = e.getKey().getValue();
+            Biome b = e.getValue();
+        });
+        return Map.of();
+    }
+
     public static int dumpData(World world, LocalDateTime now, boolean tags, boolean recipes, boolean tables,
-                               boolean advancements, boolean dimensionTypes, boolean functions, boolean templates) {
+                               boolean advancements, boolean dimensionTypes, boolean functions, boolean templates,
+                               boolean biomes) {
         lock.lock();
         AtomicInteger i = new AtomicInteger();
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
@@ -313,6 +325,9 @@ public final class Utils {
                 errMap.put("Dimension Types", Set.of(world.getDimensionKey().getValue()));
             }
         }
+        if (biomes && ConfigUtils.doDumpWorldgenBiomes()) {
+            errMap.putAll(dumpBiomes());
+        }
         if (i.get() > 0) {
             FileUtils.writeErrors(errMap);
         }
@@ -321,7 +336,7 @@ public final class Utils {
     }
 
     public static int dumpData(World world, LocalDateTime now) {
-        return dumpData(world, now, true, true, true, true, true, true, true);
+        return dumpData(world, now, true, true, true, true, true, true, true, true);
     }
 
     public static void debug() {
