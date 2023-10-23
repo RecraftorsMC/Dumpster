@@ -27,7 +27,7 @@ public abstract class RandomizedIntMixin implements IObjectable {
     @Override
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
-        o.add("type", new JsonPrimitive(Registry.BLOCK_STATE_PROVIDER_TYPE.getId(getType()).toString()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.BLOCK_STATE_PROVIDER_TYPE.getId(getType()))));
         o.add("type", new JsonPrimitive(propertyName));
         o.add("values", ((Objectable)values).toJson());
         o.add("source", JsonUtils.objectJson(source));

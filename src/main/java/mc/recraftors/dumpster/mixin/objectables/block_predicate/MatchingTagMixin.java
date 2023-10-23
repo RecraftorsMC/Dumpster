@@ -25,7 +25,7 @@ public abstract class MatchingTagMixin extends OffsetPredicate implements IObjec
     @Override
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
-        o.add("type", new JsonPrimitive(Registry.BLOCK_PREDICATE_TYPE.getId(getType()).toString()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.BLOCK_PREDICATE_TYPE.getId(getType()))));
         o.add("offset", JsonUtils.vec3iJson(offset));
         o.add("tag", new JsonPrimitive(this.tag.id().toString()));
         return o;

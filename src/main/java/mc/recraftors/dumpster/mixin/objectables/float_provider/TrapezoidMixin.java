@@ -23,7 +23,7 @@ public abstract class TrapezoidMixin implements IObjectable {
     @Override
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
-        o.add("type", new JsonPrimitive(Registry.FLOAT_PROVIDER_TYPE.getId(getType()).toString()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.FLOAT_PROVIDER_TYPE.getId(getType()))));
         o.add("min", new JsonPrimitive(min));
         o.add("max", new JsonPrimitive(max));
         o.add("plateau", new JsonPrimitive(plateau));

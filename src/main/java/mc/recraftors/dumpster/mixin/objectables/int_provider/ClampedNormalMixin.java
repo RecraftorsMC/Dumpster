@@ -24,7 +24,7 @@ public abstract class ClampedNormalMixin implements IObjectable {
     @Override
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
-        o.add("type", new JsonPrimitive(Registry.INT_PROVIDER_TYPE.getId(this.getType()).toString()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.INT_PROVIDER_TYPE.getId(this.getType()))));
         o.add("min_inclusive", new JsonPrimitive(this.getMin()));
         o.add("max_inclusive", new JsonPrimitive(this.getMax()));
         o.add("mean", new JsonPrimitive(this.mean));

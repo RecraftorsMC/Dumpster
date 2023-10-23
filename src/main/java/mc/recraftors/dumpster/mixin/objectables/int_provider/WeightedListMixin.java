@@ -18,16 +18,12 @@ import org.spongepowered.asm.mixin.Shadow;
 public abstract class WeightedListMixin implements IObjectable {
     @Shadow public abstract IntProviderType<?> getType();
 
-    @Shadow public abstract int getMin();
-
-    @Shadow public abstract int getMax();
-
     @Shadow @Final private DataPool<IntProvider> weightedList;
 
     @Override
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
-        o.add("type", new JsonPrimitive(Registry.INT_PROVIDER_TYPE.getId(this.getType()).toString()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.INT_PROVIDER_TYPE.getId(this.getType()))));
         JsonArray arr = new JsonArray();
         this.weightedList.getEntries().forEach(p -> {
             JsonObject o2 = new JsonObject();

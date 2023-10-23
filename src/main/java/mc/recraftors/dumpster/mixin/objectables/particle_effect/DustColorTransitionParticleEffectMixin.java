@@ -26,7 +26,7 @@ public abstract class DustColorTransitionParticleEffectMixin extends AbstractDus
     @Override
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
-        o.add("type", new JsonPrimitive(Registry.PARTICLE_TYPE.getId(this.getType()).toString()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.PARTICLE_TYPE.getId(this.getType()))));
         JsonArray f = new JsonArray();
         JsonArray t = new JsonArray();
         f.add(color.getX());

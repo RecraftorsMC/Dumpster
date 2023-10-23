@@ -21,7 +21,7 @@ public abstract class BlockPositionSourceMixin implements IObjectable {
     @Override
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
-        o.add("type", new JsonPrimitive(Registry.POSITION_SOURCE_TYPE.getId(getType()).getNamespace()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.POSITION_SOURCE_TYPE.getId(getType()))));
         JsonArray p = new JsonArray();
         p.add(pos.getX());
         p.add(pos.getY());

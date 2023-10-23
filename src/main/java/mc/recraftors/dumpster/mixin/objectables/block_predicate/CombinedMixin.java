@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import mc.recraftors.dumpster.utils.JsonUtils;
-import mc.recraftors.dumpster.utils.Objectable;
 import mc.recraftors.dumpster.utils.accessors.IObjectable;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.gen.blockpredicate.BlockPredicate;
@@ -22,7 +21,7 @@ public abstract class CombinedMixin implements BlockPredicate, IObjectable {
     @Override
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
-        o.add("type", new JsonPrimitive(Registry.BLOCK_PREDICATE_TYPE.getId(getType()).toString()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.BLOCK_PREDICATE_TYPE.getId(getType()))));
         JsonArray array = new JsonArray();
         this.predicates.forEach(p -> array.add(JsonUtils.objectJson(p)));
         o.add("predicates", array);

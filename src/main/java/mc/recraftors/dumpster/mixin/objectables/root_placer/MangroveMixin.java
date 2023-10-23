@@ -21,7 +21,7 @@ public abstract class MangroveMixin extends RootPlacer implements IObjectable {
 
     @Shadow @Final private MangroveRootPlacement mangroveRootPlacement;
 
-    public MangroveMixin(IntProvider trunkOffsetY, BlockStateProvider rootProvider, Optional<AboveRootPlacement> aboveRootPlacement) {
+    MangroveMixin(IntProvider trunkOffsetY, BlockStateProvider rootProvider, Optional<AboveRootPlacement> aboveRootPlacement) {
         super(trunkOffsetY, rootProvider, aboveRootPlacement);
     }
 

@@ -21,7 +21,7 @@ public abstract class UniformMixin implements IObjectable {
     @Override
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
-        o.add("type", new JsonPrimitive(Registry.FLOAT_PROVIDER_TYPE.getId(getType()).toString()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.FLOAT_PROVIDER_TYPE.getId(getType()))));
         o.add("min_inclusive", new JsonPrimitive(min));
         o.add("max_inclusive", new JsonPrimitive(max));
         return o;

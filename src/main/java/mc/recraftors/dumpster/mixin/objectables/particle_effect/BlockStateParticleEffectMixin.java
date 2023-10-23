@@ -7,13 +7,10 @@ import mc.recraftors.dumpster.utils.accessors.IObjectable;
 import net.minecraft.block.BlockState;
 import net.minecraft.particle.BlockStateParticleEffect;
 import net.minecraft.particle.ParticleType;
-import net.minecraft.state.property.Property;
 import net.minecraft.util.registry.Registry;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-
-import java.util.Collection;
 
 @Mixin(BlockStateParticleEffect.class)
 public abstract class BlockStateParticleEffectMixin implements IObjectable {
@@ -24,7 +21,7 @@ public abstract class BlockStateParticleEffectMixin implements IObjectable {
     @Override
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
-        o.add("type", new JsonPrimitive(Registry.PARTICLE_TYPE.getId(this.getType()).toString()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.PARTICLE_TYPE.getId(this.getType()))));
         JsonObject v = JsonUtils.blockStateJSon(blockState);
         o.add("value", v);
         return o;

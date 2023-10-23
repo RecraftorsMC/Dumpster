@@ -1,6 +1,5 @@
 package mc.recraftors.dumpster.mixin.objectables.block_predicate;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import mc.recraftors.dumpster.utils.JsonUtils;
@@ -25,7 +24,7 @@ public abstract class SturdyFaceMixin implements IObjectable {
     @Override
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
-        o.add("type", new JsonPrimitive(Registry.BLOCK_PREDICATE_TYPE.getId(getType()).toString()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.BLOCK_PREDICATE_TYPE.getId(getType()))));
         o.add("offset", JsonUtils.vec3iJson(offset));
         o.add("direction", new JsonPrimitive(face.getName()));
         return o;

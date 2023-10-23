@@ -19,12 +19,12 @@ public abstract class EntityPositionSourceMixin implements IObjectable {
 
     @Shadow protected abstract UUID getUuid();
 
-    @Shadow @Final private float yOffset;
+    @Shadow @Final float yOffset;
 
     @Override
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
-        o.add("type", new JsonPrimitive(Registry.POSITION_SOURCE_TYPE.getId(getType()).getNamespace()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.POSITION_SOURCE_TYPE.getId(getType()))));
         JsonArray e = new JsonArray();
         UUID u = getUuid();
         long m = u.getMostSignificantBits();

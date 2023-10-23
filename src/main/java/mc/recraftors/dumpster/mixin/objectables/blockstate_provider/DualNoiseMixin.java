@@ -37,7 +37,7 @@ public abstract class DualNoiseMixin extends NoiseBlockStateProvider implements 
     @Override
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
-        o.add("type", new JsonPrimitive(Registry.BLOCK_STATE_PROVIDER_TYPE.getId(getType()).toString()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.BLOCK_STATE_PROVIDER_TYPE.getId(getType()))));
         o.add("seed", new JsonPrimitive(seed));
         o.add("noise", JsonUtils.noiseJson(noiseParameters));
         o.add("scale", new JsonPrimitive(scale));

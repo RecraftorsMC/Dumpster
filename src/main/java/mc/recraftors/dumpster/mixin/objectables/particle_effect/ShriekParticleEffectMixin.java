@@ -19,7 +19,7 @@ public abstract class ShriekParticleEffectMixin implements IObjectable {
     @Override
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
-        o.add("type", new JsonPrimitive(Registry.PARTICLE_TYPE.getId(getType()).toString()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.PARTICLE_TYPE.getId(getType()))));
         o.add("delay", new JsonPrimitive(delay));
         return o;
     }

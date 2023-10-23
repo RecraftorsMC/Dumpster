@@ -28,7 +28,7 @@ public abstract class NoiseMixin extends AbstractNoiseBlockStateProvider impleme
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
         JsonArray s = new JsonArray();
-        o.add("type", new JsonPrimitive(Registry.BLOCK_STATE_PROVIDER_TYPE.getId(getType()).toString()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.BLOCK_STATE_PROVIDER_TYPE.getId(getType()))));
         o.add("seed", new JsonPrimitive(seed));
         o.add("noise", JsonUtils.noiseJson(noiseParameters));
         o.add("scale", new JsonPrimitive(scale));

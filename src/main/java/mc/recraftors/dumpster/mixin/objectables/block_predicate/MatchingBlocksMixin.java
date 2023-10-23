@@ -26,7 +26,7 @@ public abstract class MatchingBlocksMixin extends OffsetPredicate implements IOb
     @Override
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
-        o.add("type", new JsonPrimitive(Registry.BLOCK_PREDICATE_TYPE.getId(getType()).toString()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.BLOCK_PREDICATE_TYPE.getId(getType()))));
         o.add("offset", JsonUtils.vec3iJson(offset));
         JsonArray array = new JsonArray();
         this.blocks.forEach(b -> array.add(Registry.BLOCK.getId(b.value()).toString()));

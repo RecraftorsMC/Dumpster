@@ -23,7 +23,7 @@ public abstract class WeightedListMixin implements IObjectable {
     @Override
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
-        o.add("type", new JsonPrimitive(Registry.HEIGHT_PROVIDER_TYPE.getId(getType()).toString()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.HEIGHT_PROVIDER_TYPE.getId(getType()))));
         JsonArray dist = new JsonArray();
         weightedList.getEntries().forEach(e -> {
             JsonObject entry = new JsonObject();

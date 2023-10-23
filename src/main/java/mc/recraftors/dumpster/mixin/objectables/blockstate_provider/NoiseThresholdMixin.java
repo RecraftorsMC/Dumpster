@@ -39,7 +39,7 @@ public abstract class NoiseThresholdMixin extends AbstractNoiseBlockStateProvide
         lowStates.forEach(state -> low.add(JsonUtils.blockStateJSon(state)));
         JsonArray high = new JsonArray();
         highStates.forEach(state -> high.add(JsonUtils.blockStateJSon(state)));
-        o.add("type", new JsonPrimitive(Registry.BLOCK_STATE_PROVIDER_TYPE.getId(getType()).toString()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.BLOCK_STATE_PROVIDER_TYPE.getId(getType()))));
         o.add("seed", new JsonPrimitive(seed));
         o.add("noise", JsonUtils.noiseJson(noiseParameters));
         o.add("scale", new JsonPrimitive(scale));

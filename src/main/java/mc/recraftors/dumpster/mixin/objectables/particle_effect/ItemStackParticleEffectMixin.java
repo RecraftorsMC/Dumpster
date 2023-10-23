@@ -21,7 +21,7 @@ public abstract class ItemStackParticleEffectMixin implements IObjectable {
     @Override
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
-        o.add("type", new JsonPrimitive(Registry.PARTICLE_TYPE.getId(this.getType()).toString()));
+        o.add("type", new JsonPrimitive(String.valueOf(Registry.PARTICLE_TYPE.getId(this.getType()))));
         JsonObject v = new JsonObject();
         v.add("id", new JsonPrimitive(Registry.ITEM.getId(stack.getItem()).toString()));
         v.add("Count", new JsonPrimitive(stack.getCount()));
