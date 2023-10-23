@@ -38,5 +38,6 @@
   "depends": {
     "fabricloader": ">=0.14.7",
     "minecraft": ">=1.19- <1.19.3-"
-  }
+  },
+  "accessWidener": "dumpster.accesswidener"
 }
