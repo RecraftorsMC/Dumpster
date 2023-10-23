@@ -6,8 +6,7 @@ import net.minecraft.advancement.AdvancementCriterion;
 import net.minecraft.nbt.*;
 import net.minecraft.world.dimension.DimensionType;
 
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public final class JsonUtils {
     private JsonUtils() {}
@@ -17,7 +16,7 @@ public final class JsonUtils {
      * @param nbt The Nbt to create a Json element for
      * @return The generated Json element matching the provided Nbt.
      */
-    public static JsonElement asJson(NbtElement nbt) {
+    public static JsonElement nbtJson(NbtElement nbt) {
         if (nbt == null) {
             return JsonNull.INSTANCE;
         }
@@ -26,12 +25,12 @@ public final class JsonUtils {
         if (nbt instanceof AbstractNbtNumber n) return new JsonPrimitive(n.numberValue());
         if (nbt instanceof AbstractNbtList<?> l) {
             JsonArray arr =  new JsonArray();
-            l.stream().map(JsonUtils::asJson).forEach(arr::add);
+            l.stream().map(JsonUtils::nbtJson).forEach(arr::add);
             return arr;
         }
         if (nbt instanceof NbtCompound c) {
             JsonObject o = new JsonObject();
-            c.getKeys().forEach(k -> o.add(k, asJson(c.get(k))));
+            c.getKeys().forEach(k -> o.add(k, nbtJson(c.get(k))));
             return o;
         }
         return null;

@@ -2,8 +2,8 @@ package mc.recraftors.dumpster.utils;
 
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
-import mc.recraftors.dumpster.recipes.RecipeJsonParser;
-import mc.recraftors.dumpster.recipes.TargetRecipeType;
+import mc.recraftors.dumpster.parsers.recipes.RecipeJsonParser;
+import mc.recraftors.dumpster.parsers.recipes.TargetRecipeType;
 import mc.recraftors.dumpster.utils.accessors.IStringable;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.loot.LootManager;

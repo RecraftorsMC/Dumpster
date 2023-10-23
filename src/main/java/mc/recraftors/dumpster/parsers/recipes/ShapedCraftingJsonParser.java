@@ -1,4 +1,4 @@
-package mc.recraftors.dumpster.recipes;
+package mc.recraftors.dumpster.parsers.recipes;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -11,7 +11,7 @@ import net.minecraft.util.registry.Registry;
 import java.util.Map;
 
 @TargetRecipeType(value = ShapedCraftingJsonParser.TYPE, supports = "crafting")
-public final class ShapedCraftingJsonParser implements RecipeJsonParser {
+public class ShapedCraftingJsonParser implements RecipeJsonParser {
     public static final String TYPE = "minecraft:crafting_shaped";
     private ShapedRecipe recipe;
 

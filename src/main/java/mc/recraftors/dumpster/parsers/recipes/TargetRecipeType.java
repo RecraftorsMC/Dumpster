@@ -1,4 +1,4 @@
-package mc.recraftors.dumpster.recipes;
+package mc.recraftors.dumpster.parsers.recipes;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

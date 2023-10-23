@@ -1,4 +1,4 @@
-package mc.recraftors.dumpster.recipes;
+package mc.recraftors.dumpster.parsers.recipes;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -7,7 +7,7 @@ import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.SmithingRecipe;
 
 @TargetRecipeType(SmithingJsonParser.TYPE)
-public final class SmithingJsonParser implements RecipeJsonParser {
+public class SmithingJsonParser implements RecipeJsonParser {
     public static final String TYPE = "minecraft:smithing";
     private SmithingRecipe recipe;
 

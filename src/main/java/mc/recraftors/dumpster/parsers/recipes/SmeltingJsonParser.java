@@ -1,10 +1,10 @@
-package mc.recraftors.dumpster.recipes;
+package mc.recraftors.dumpster.parsers.recipes;
 
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.SmeltingRecipe;
 
 @TargetRecipeType(SmeltingJsonParser.TYPE)
-public final class SmeltingJsonParser extends AbstractCookingJsonParser {
+public class SmeltingJsonParser extends AbstractCookingJsonParser {
     public static final String TYPE = "minecraft:smelting";
     public SmeltingJsonParser() {
         super(TYPE);

@@ -1,7 +1,7 @@
 package mc.recraftors.dumpster.utils;
 
 import com.google.gson.*;
-import mc.recraftors.dumpster.recipes.RecipeJsonParser;
+import mc.recraftors.dumpster.parsers.recipes.RecipeJsonParser;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
@@ -10,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;

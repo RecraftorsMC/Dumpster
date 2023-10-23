@@ -1,4 +1,4 @@
-package mc.recraftors.dumpster.recipes;
+package mc.recraftors.dumpster.parsers.recipes;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;

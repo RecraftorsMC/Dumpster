@@ -1,4 +1,4 @@
-package mc.recraftors.dumpster.recipes;
+package mc.recraftors.dumpster.parsers.recipes;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -8,7 +8,7 @@ import net.minecraft.recipe.ShapelessRecipe;
 import net.minecraft.util.registry.Registry;
 
 @TargetRecipeType(value = ShapelessCraftingJsonParser.TYPE, supports = "crafting")
-public final class ShapelessCraftingJsonParser implements RecipeJsonParser {
+public class ShapelessCraftingJsonParser implements RecipeJsonParser {
     public static final String TYPE = "minecraft:crafting_shapeless";
     private ShapelessRecipe recipe;
 

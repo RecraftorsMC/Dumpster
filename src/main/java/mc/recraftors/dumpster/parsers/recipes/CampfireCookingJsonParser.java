@@ -1,10 +1,10 @@
-package mc.recraftors.dumpster.recipes;
+package mc.recraftors.dumpster.parsers.recipes;
 
 import net.minecraft.recipe.CampfireCookingRecipe;
 import net.minecraft.recipe.Recipe;
 
 @TargetRecipeType(CampfireCookingJsonParser.TYPE)
-public final class CampfireCookingJsonParser extends AbstractCookingJsonParser {
+public class CampfireCookingJsonParser extends AbstractCookingJsonParser {
     public static final String TYPE = "minecraft:campfire_cooking";
 
     public CampfireCookingJsonParser() {
