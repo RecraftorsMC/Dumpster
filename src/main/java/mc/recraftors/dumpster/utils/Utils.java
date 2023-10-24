@@ -19,6 +19,7 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.gen.carver.ConfiguredCarver;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -292,7 +293,7 @@ public final class Utils {
                 return;
             }
             JsonObject o = JsonUtils.jsonBiome(b);
-            if (FileUtils.storeBiome(o, id, now, i)) {
+            if (FileUtils.storeWorldgen(o, id, "biome", now, i)) {
                 err.add(id);
             }
         });
@@ -302,13 +303,54 @@ public final class Utils {
         return Map.of();
     }
 
-    private static Map<String, Set<Identifier>> dumpWorldgen(World world, LocalDateTime now, AtomicInteger i,
+    private static Map<String, Set<Identifier>> dumpCarvers(LocalDateTime now, AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
+        BuiltinRegistries.DYNAMIC_REGISTRY_MANAGER.getManaged(Registry.CONFIGURED_CARVER_KEY).getEntrySet().forEach(e -> {
+            Identifier id = e.getKey().getValue();
+            ConfiguredCarver<?> carver = e.getValue();
+            if (carver == null) {
+                err.add(id);
+                i.incrementAndGet();
+                return;
+            }
+            JsonObject o = JsonUtils.jsonConfiguredCarver(carver);
+            if (FileUtils.storeWorldgen(o, id, "configured_carver", now, i)) {
+                err.add(id);
+            }
+        });
+        if (!err.isEmpty()) return Map.of("Configured Carvers", err);
+        return Map.of();
+    }
+
+    private static Map<String, Set<Identifier>> dumpWorldgen(LocalDateTime now, AtomicInteger i,
                                                      DumpCall.Worldgen call) {
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
         if (call.biomes() && ConfigUtils.doDumpWorldgenBiomes()) {
             errMap.putAll(dumpBiomes(now, i));
         }
+        if (call.carvers() && ConfigUtils.doDumpWorldgenCarvers()) {
+            errMap.putAll(dumpCarvers(now, i));
+        }
         return errMap;
+    }
+
+    public static void  dumpDataServer(ServerWorld w, Map<String, Set<Identifier>> errMap, LocalDateTime now,
+                                       AtomicInteger i, DumpCall.Data call) {
+        if (call.lootTables() && ConfigUtils.doDumpLootTables()) {
+            errMap.putAll(dumpLootTables(w, now, i));
+        }
+        if (call.advancements() && ConfigUtils.doDumpAdvancements()) {
+            errMap.putAll(dumpAdvancements(w, now, i));
+        }
+        if (call.dimensionTypes() && ConfigUtils.doDumpDimensionTypes()) {
+            errMap.putAll(dumpDimensions(w, now, i));
+        }
+        if (call.functions() && ConfigUtils.doDumpFunctions()) {
+            errMap.putAll(dumpFunctions(w, now, i));
+        }
+        if (call.structures() && ConfigUtils.doDumpStructureTemplates()) {
+            errMap.putAll(dumpStructureTemplates(w, now, i));
+        }
     }
 
     public static int dumpData(World world, LocalDateTime now, DumpCall.Data call) {
@@ -321,28 +363,14 @@ public final class Utils {
             errMap.putAll(dumpRecipes(world, now, i));
         }
         if (world instanceof ServerWorld w) {
-            if (call.lootTables() && ConfigUtils.doDumpLootTables()) {
-                errMap.putAll(dumpLootTables(w, now, i));
-            }
-            if (call.advancements() && ConfigUtils.doDumpAdvancements()) {
-                errMap.putAll(dumpAdvancements(w, now, i));
-            }
-            if (call.dimensionTypes() && ConfigUtils.doDumpDimensionTypes()) {
-                errMap.putAll(dumpDimensions(w, now, i));
-            }
-            if (call.functions() && ConfigUtils.doDumpFunctions()) {
-                errMap.putAll(dumpFunctions(w, now, i));
-            }
-            if (call.structures() && ConfigUtils.doDumpStructureTemplates()) {
-                errMap.putAll(dumpStructureTemplates(w, now, i));
-            }
+            dumpDataServer(w, errMap, now, i, call);
         } else {
             if (call.dimensionTypes() && ConfigUtils.doDumpDimensionTypes() && dumpDim(world, now, i)) {
                 errMap.put("Dimension Types", Set.of(world.getDimensionKey().getValue()));
             }
         }
         if (call.worldgen()) {
-            errMap.putAll(dumpWorldgen(world, now, i, call.worldgenO()));
+            errMap.putAll(dumpWorldgen(now, i, call.worldgenO()));
         }
         if (i.get() > 0) {
             FileUtils.writeErrors(errMap);

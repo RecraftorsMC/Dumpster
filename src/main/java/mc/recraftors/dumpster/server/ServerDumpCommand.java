@@ -63,7 +63,7 @@ public final class ServerDumpCommand {
     }
 
     private static int dumpWorldgen(CommandContext<ServerCommandSource> context, boolean b1, boolean b2) {
-        return dumpData(context, new DumpCall.Data(F,F,F,F,F,F,F,F,T, new DumpCall.Worldgen(b1, F,F,F,F,F,F,F,F)));
+        return dumpData(context, new DumpCall.Data(F,F,F,F,F,F,F,F,T, new DumpCall.Worldgen(b1, b2, F,F,F,F,F,F,F)));
     }
 
     private static int dumpData(CommandContext<ServerCommandSource> context, DumpCall.Data call) {

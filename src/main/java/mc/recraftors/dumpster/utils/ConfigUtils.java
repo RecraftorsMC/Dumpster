@@ -30,6 +30,7 @@ public final class ConfigUtils {
     private static final String DATA_DUMP_FUNCTIONS = "dump.data.dumpMcFunctions";
     private static final String DATA_DUMP_STRUCTURE_TEMPLATES = "dump.data.dumpStructureTemplates";
     private static final String DATA_DUMP_WORLDGEN_BIOMES = "dump.data.dumpWorldgen.biomes";
+    private static final String DATA_DUMP_WORLDGEN_CARVERS = "dump.data.dumpWorldgen.carvers";
     private static final String DUMP_MAIN_FOLDER = "dumpFile.mainFolder";
     private static final String DUMP_ORG_DATE = "dumpFile.organizeFolderByDate";
     private static final String DUMP_ORG_TYPE = "dumpFile.organizeFolderByType";
@@ -55,6 +56,7 @@ public final class ConfigUtils {
         defaults.setProperty(DATA_DUMP_FUNCTIONS, TRUE);
         defaults.setProperty(DATA_DUMP_STRUCTURE_TEMPLATES, TRUE);
         defaults.setProperty(DATA_DUMP_WORLDGEN_BIOMES, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_CARVERS, TRUE);
         defaults.setProperty(DUMP_MAIN_FOLDER, "dump");
         defaults.setProperty(DUMP_ORG_DATE, FALSE);
         defaults.setProperty(DUMP_ORG_TYPE, TRUE);
@@ -74,6 +76,7 @@ public final class ConfigUtils {
         PROPERTIES.setProperty(DATA_DUMP_FUNCTIONS, TRUE);
         PROPERTIES.setProperty(DATA_DUMP_STRUCTURE_TEMPLATES, TRUE);
         PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_BIOMES, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_CARVERS, TRUE);
         PROPERTIES.setProperty(DUMP_MAIN_FOLDER, "dump");
         PROPERTIES.setProperty(DUMP_ORG_DATE, FALSE);
         PROPERTIES.setProperty(DUMP_ORG_TYPE, TRUE);
@@ -135,6 +138,10 @@ public final class ConfigUtils {
 
     public static boolean doDumpWorldgenBiomes() {
         return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_BIOMES));
+    }
+
+    public static boolean doDumpWorldgenCarvers() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_CARVERS));
     }
 
     public static String dumpFileMainFolder() {

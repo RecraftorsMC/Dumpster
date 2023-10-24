@@ -205,14 +205,16 @@ public final class FileUtils {
         }
     }
 
-    static boolean storeBiome(JsonObject o, Identifier id, LocalDateTime now, AtomicInteger i) {
+    static boolean storeWorldgen(JsonObject o, Identifier id, String type, LocalDateTime now, AtomicInteger i) {
         try {
-            StringBuilder builder = pathBuilder(now, WORLDGEN+"biomes", id.getNamespace());
+            StringBuilder builder = pathBuilder(now, "worldgen"+File.separator+type, id);
             builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
             storeJson(o, builder.toString());
             return false;
         } catch (IOException e) {
-            err("biome", id, e);
+            String t = type.substring(0,1).toUpperCase(Locale.ROOT);
+            if (type.length() > 1) t += type.substring(1).toLowerCase(Locale.ROOT);
+            err(t, id, e);
             i.incrementAndGet();
             return true;
         }
