@@ -20,6 +20,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.gen.carver.ConfiguredCarver;
+import net.minecraft.world.gen.feature.ConfiguredFeature;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -322,6 +323,25 @@ public final class Utils {
         return Map.of();
     }
 
+    private static Map<String, Set<Identifier>> dumpConfiguredFeatures(LocalDateTime now, AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
+        BuiltinRegistries.DYNAMIC_REGISTRY_MANAGER.getManaged(Registry.CONFIGURED_FEATURE_KEY).getEntrySet().forEach(e -> {
+            Identifier id = e.getKey().getValue();
+            ConfiguredFeature<?,?> feature = e.getValue();
+            if (feature == null) {
+                err.add(id);
+                i.incrementAndGet();
+                return;
+            }
+            JsonObject o = JsonUtils.jsonConfiguredFeature(feature);
+            if (FileUtils.storeWorldgen(o, id, "configured_feature", now, i)) {
+                err.add(id);
+            }
+        });
+        if (err.isEmpty()) return Map.of();
+        return Map.of("Configured Features", err);
+    }
+
     private static Map<String, Set<Identifier>> dumpWorldgen(LocalDateTime now, AtomicInteger i,
                                                      DumpCall.Worldgen call) {
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
@@ -330,6 +350,9 @@ public final class Utils {
         }
         if (call.carvers() && ConfigUtils.doDumpWorldgenCarvers()) {
             errMap.putAll(dumpCarvers(now, i));
+        }
+        if (call.features() && ConfigUtils.doDumpWorldgenConfiguredFeatures()) {
+            errMap.putAll(dumpConfiguredFeatures(now, i));
         }
         return errMap;
     }

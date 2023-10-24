@@ -285,7 +285,7 @@ public final class JsonUtils {
         return main;
     }
 
-    public static JsonElement jsonConfiguredFeature(ConfiguredFeature<?,?> feature) {
+    public static JsonObject jsonConfiguredFeature(ConfiguredFeature<?,?> feature) {
         FeatureJsonParser parser = getFeatureParser(feature);
         return parser == null ? unknownJson(feature) : parser.toJson();
     }
