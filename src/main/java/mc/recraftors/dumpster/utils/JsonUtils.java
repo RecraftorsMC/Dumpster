@@ -366,7 +366,7 @@ public final class JsonUtils {
         biome.getParticleConfig().ifPresent(c -> {
             JsonObject part = new JsonObject();
             part.add("probability", new JsonPrimitive(((IFloatProvider) c).dumpster$getFloat()));
-            part.add("options", ((Objectable)c.getParticle()).toJson());
+            part.add("options", objectJson(c.getParticle()));
             effects.add("particle", part);
         });
         biome.getLoopSound().ifPresent(s -> effects.add("ambient_sound", soundJson(s)));

@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(SculkChargeParticleEffect.class)
-public abstract class SculkChargeParticleEffectMixin implements IObjectable {
+public abstract class SculkChargeMixin implements IObjectable {
     @Shadow public abstract ParticleType<SculkChargeParticleEffect> getType();
 
     @Shadow @Final private float roll;

@@ -4,30 +4,25 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import mc.recraftors.dumpster.utils.JsonUtils;
 import mc.recraftors.dumpster.utils.accessors.IObjectable;
-import net.minecraft.item.ItemStack;
-import net.minecraft.particle.ItemStackParticleEffect;
+import net.minecraft.block.BlockState;
+import net.minecraft.particle.BlockStateParticleEffect;
 import net.minecraft.particle.ParticleType;
 import net.minecraft.util.registry.Registry;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-@Mixin(ItemStackParticleEffect.class)
-public abstract class ItemStackParticleEffectMixin implements IObjectable {
-    @Shadow @Final private ItemStack stack;
+@Mixin(BlockStateParticleEffect.class)
+public abstract class BlockStateMixin implements IObjectable {
+    @Shadow @Final private BlockState blockState;
 
-    @Shadow public abstract ParticleType<ItemStackParticleEffect> getType();
+    @Shadow public abstract ParticleType<BlockStateParticleEffect> getType();
 
     @Override
     public JsonObject dumpster$toJson() {
         JsonObject o = new JsonObject();
         o.add("type", new JsonPrimitive(String.valueOf(Registry.PARTICLE_TYPE.getId(this.getType()))));
-        JsonObject v = new JsonObject();
-        v.add("id", new JsonPrimitive(Registry.ITEM.getId(stack.getItem()).toString()));
-        v.add("Count", new JsonPrimitive(stack.getCount()));
-        if (stack.hasNbt()) {
-            v.add("tag", JsonUtils.nbtJson(stack.getNbt()));
-        }
+        JsonObject v = JsonUtils.blockStateJSon(blockState);
         o.add("value", v);
         return o;
     }

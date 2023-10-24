@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(ShriekParticleEffect.class)
-public abstract class ShriekParticleEffectMixin implements IObjectable {
+public abstract class ShriekMixin implements IObjectable {
     @Shadow public abstract ParticleType<ShriekParticleEffect> getType();
 
     @Shadow @Final private int delay;

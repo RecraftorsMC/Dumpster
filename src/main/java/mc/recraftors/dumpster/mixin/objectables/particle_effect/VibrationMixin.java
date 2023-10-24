@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(VibrationParticleEffect.class)
-public abstract class VibrationParticleEffectMixin implements IObjectable {
+public abstract class VibrationMixin implements IObjectable {
     @Shadow public abstract ParticleType<VibrationParticleEffect> getType();
 
     @Shadow @Final private PositionSource destination;
