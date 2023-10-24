@@ -1,7 +1,7 @@
 package mc.recraftors.dumpster.mixin.server;
 
+import mc.recraftors.dumpster.utils.DumpCall;
 import mc.recraftors.dumpster.utils.ConfigUtils;
-import mc.recraftors.dumpster.utils.FileUtils;
 import mc.recraftors.dumpster.utils.Utils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -14,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 
 @Environment(EnvType.SERVER)
 @Mixin(PlayerManager.class)
@@ -23,7 +22,6 @@ public abstract class ServerPlayerManagerMixin {
 
     @Inject(method = "onDataPacksReloaded", at = @At("TAIL"))
     private void datapackReloadTailInjector(CallbackInfo ci) {
-        LocalDateTime now = LocalDateTime.now();
         try {
             ConfigUtils.reload();
         } catch (IOException e) {
@@ -31,12 +29,6 @@ public abstract class ServerPlayerManagerMixin {
         }
         boolean b1 = ConfigUtils.doAutoDumpResourcesOnReload();
         boolean b2 = ConfigUtils.doAutoDumpRegistriesOnReload();
-        if (b1 || b2) FileUtils.clearIfNeeded();
-        if (b1) {
-            Utils.dumpRegistries(now);
-        }
-        if (b2) {
-            Utils.dumpData(this.getServer().getOverworld(), now);
-        }
+        if (b1 || b2) Utils.dump(getServer().getOverworld(), new DumpCall(b1, b2, DumpCall.Data.ALL_TRUE));
     }
 }

@@ -67,8 +67,7 @@ public final class Utils {
         REGISTRIES.add(reg);
     }
 
-    public static int dumpRegistries(LocalDateTime now) {
-        lock.lock();
+    private static int dumpRegistries(LocalDateTime now) {
         AtomicInteger i = new AtomicInteger();
         Set<Identifier> err = new HashSet<>();
         for (Registry<?> reg : REGISTRIES) {
@@ -292,41 +291,47 @@ public final class Utils {
         return Map.of();
     }
 
-    public static int dumpData(World world, LocalDateTime now, boolean tags, boolean recipes, boolean tables,
-                               boolean advancements, boolean dimensionTypes, boolean functions, boolean templates,
-                               boolean biomes) {
-        lock.lock();
+    private static Map<String, Set<Identifier>> dumpWorldgen(World world, LocalDateTime now, AtomicInteger i,
+                                                     DumpCall.Worldgen call) {
+        Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
+        if (call.biomes() && ConfigUtils.doDumpWorldgenBiomes()) {
+            errMap.putAll(dumpBiomes(now, i));
+        }
+        return errMap;
+    }
+
+    public static int dumpData(World world, LocalDateTime now, DumpCall.Data call) {
         AtomicInteger i = new AtomicInteger();
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
-        if (tags && ConfigUtils.doDataDumpTags()) {
+        if (call.tags() && ConfigUtils.doDataDumpTags()) {
             errMap.putAll(dumpTags(world, now, i));
         }
-        if (recipes && ConfigUtils.doDataDumpRecipes()) {
+        if (call.recipes() && ConfigUtils.doDataDumpRecipes()) {
             errMap.putAll(dumpRecipes(world, now, i));
         }
         if (world instanceof ServerWorld w) {
-            if (tables && ConfigUtils.doDumpLootTables()) {
+            if (call.lootTables() && ConfigUtils.doDumpLootTables()) {
                 errMap.putAll(dumpLootTables(w, now, i));
             }
-            if (advancements && ConfigUtils.doDumpAdvancements()) {
+            if (call.advancements() && ConfigUtils.doDumpAdvancements()) {
                 errMap.putAll(dumpAdvancements(w, now, i));
             }
-            if (dimensionTypes && ConfigUtils.doDumpDimensionTypes()) {
+            if (call.dimensionTypes() && ConfigUtils.doDumpDimensionTypes()) {
                 errMap.putAll(dumpDimensions(w, now, i));
             }
-            if (functions && ConfigUtils.doDumpFunctions()) {
+            if (call.functions() && ConfigUtils.doDumpFunctions()) {
                 errMap.putAll(dumpFunctions(w, now, i));
             }
-            if (templates && ConfigUtils.doDumpStructureTemplates()) {
+            if (call.structures() && ConfigUtils.doDumpStructureTemplates()) {
                 errMap.putAll(dumpStructureTemplates(w, now, i));
             }
         } else {
-            if (dimensionTypes && ConfigUtils.doDumpDimensionTypes() && dumpDim(world, now, i)) {
+            if (call.dimensionTypes() && ConfigUtils.doDumpDimensionTypes() && dumpDim(world, now, i)) {
                 errMap.put("Dimension Types", Set.of(world.getDimensionKey().getValue()));
             }
         }
-        if (biomes && ConfigUtils.doDumpWorldgenBiomes()) {
-            errMap.putAll(dumpBiomes());
+        if (call.worldgen()) {
+            errMap.putAll(dumpWorldgen(world, now, i, call.worldgenO()));
         }
         if (i.get() > 0) {
             FileUtils.writeErrors(errMap);
@@ -335,8 +340,23 @@ public final class Utils {
         return i.get();
     }
 
-    public static int dumpData(World world, LocalDateTime now) {
-        return dumpData(world, now, true, true, true, true, true, true, true, true);
+    private static int dumpData(World world, LocalDateTime now) {
+        return dumpData(world, now, DumpCall.Data.ALL_TRUE);
+    }
+
+    public static int dump(World w, DumpCall call) {
+        lock.lock();
+        FileUtils.clearIfNeeded();
+        LocalDateTime now = LocalDateTime.now();
+        int n = 0;
+        if (call.registries()) {
+            n = dumpRegistries(now);
+        }
+        if (call.data()) {
+            n += dumpData(w, now);
+        }
+        lock.unlock();
+        return n;
     }
 
     public static void debug() {

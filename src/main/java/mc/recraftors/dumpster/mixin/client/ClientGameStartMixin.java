@@ -1,7 +1,7 @@
 package mc.recraftors.dumpster.mixin.client;
 
+import mc.recraftors.dumpster.utils.DumpCall;
 import mc.recraftors.dumpster.utils.ConfigUtils;
-import mc.recraftors.dumpster.utils.FileUtils;
 import mc.recraftors.dumpster.utils.Utils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -12,16 +12,13 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.time.LocalDateTime;
-
 @Environment(EnvType.CLIENT)
 @Mixin(MinecraftClient.class)
 public abstract class ClientGameStartMixin {
     @Inject(method = "<init>", at = @At("TAIL"))
     private void afterBuildInjector(RunArgs args, CallbackInfo ci) {
         if (ConfigUtils.doAutoDumpRegistriesOnStartup()) {
-            FileUtils.clearIfNeeded();
-            Utils.dumpRegistries(LocalDateTime.now());
+            Utils.dump(null, new DumpCall(true, false, null));
         }
     }
 }
