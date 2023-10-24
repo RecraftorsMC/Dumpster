@@ -363,7 +363,7 @@ public final class Utils {
             n = dumpRegistries(now);
         }
         if (call.data()) {
-            n += dumpData(w, now);
+            n += dumpData(w, now, call.dataO());
         }
         lock.unlock();
         return n;
