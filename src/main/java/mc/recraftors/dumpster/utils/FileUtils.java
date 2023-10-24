@@ -19,6 +19,7 @@ import java.util.stream.Stream;
 public final class FileUtils {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final String JSON_EXT = ".json";
+    private static final String WORLDGEN = "worldgen"+File.separator;
 
     private static void err(String target, Identifier id, Exception e) {
         if (ConfigUtils.doErrorPrintStacktrace()) {
@@ -199,6 +200,19 @@ public final class FileUtils {
             return false;
         } catch (IOException e) {
             err("structure_template", id, e);
+            i.incrementAndGet();
+            return true;
+        }
+    }
+
+    static boolean storeBiome(JsonObject o, Identifier id, LocalDateTime now, AtomicInteger i) {
+        try {
+            StringBuilder builder = pathBuilder(now, WORLDGEN+"biomes", id.getNamespace());
+            builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
+            storeJson(o, builder.toString());
+            return false;
+        } catch (IOException e) {
+            err("biome", id, e);
             i.incrementAndGet();
             return true;
         }

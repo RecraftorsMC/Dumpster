@@ -25,7 +25,7 @@ public class EndSpikeJsonParser implements FeatureJsonParser {
         JsonObject main = new JsonObject();
         main.add("crystal_invulnerable", new JsonPrimitive(config.isCrystalInvulnerable()));
         if (config.getPos() != null) {
-            main.add("crystal_beam_target", JsonUtils.blockPosJson(config.getPos()));
+            main.add("crystal_beam_target", JsonUtils.jsonBlockPos(config.getPos()));
         }
         JsonArray spikes = new JsonArray();
         config.getSpikes().forEach(spike -> {

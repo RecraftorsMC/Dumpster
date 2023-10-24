@@ -98,7 +98,6 @@ public final class Utils {
         if (i.get() > 0) {
             FileUtils.writeErrors(Map.of("Registries", err));
         }
-        lock.unlock();
         return i.get();
     }
 
@@ -282,12 +281,24 @@ public final class Utils {
         return Map.of();
     }
 
-    private static Map<String, Set<Identifier>> dumpBiomes() {
+    private static Map<String, Set<Identifier>> dumpBiomes(LocalDateTime now, AtomicInteger i) {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.DYNAMIC_REGISTRY_MANAGER.getManaged(Registry.BIOME_KEY).getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
             Biome b = e.getValue();
+            if (b == null) {
+                err.add(id);
+                i.getAndIncrement();
+                return;
+            }
+            JsonObject o = JsonUtils.jsonBiome(b);
+            if (FileUtils.storeBiome(o, id, now, i)) {
+                err.add(id);
+            }
         });
+        if (!err.isEmpty()) {
+            return Map.of("Biomes", err);
+        }
         return Map.of();
     }
 
@@ -336,7 +347,6 @@ public final class Utils {
         if (i.get() > 0) {
             FileUtils.writeErrors(errMap);
         }
-        lock.unlock();
         return i.get();
     }
 

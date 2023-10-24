@@ -30,7 +30,7 @@ public abstract class NoiseMixin extends AbstractNoiseBlockStateProvider impleme
         JsonArray s = new JsonArray();
         o.add("type", new JsonPrimitive(String.valueOf(Registry.BLOCK_STATE_PROVIDER_TYPE.getId(getType()))));
         o.add("seed", new JsonPrimitive(seed));
-        o.add("noise", JsonUtils.noiseJson(noiseParameters));
+        o.add("noise", JsonUtils.jsonNoise(noiseParameters));
         o.add("scale", new JsonPrimitive(scale));
         states.forEach(state -> s.add(JsonUtils.blockStateJSon(state)));
         o.add("states", s);

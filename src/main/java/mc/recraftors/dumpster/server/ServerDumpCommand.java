@@ -10,8 +10,6 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.world.World;
 
-import java.time.LocalDateTime;
-
 import static mc.recraftors.dumpster.server.ServerLiteralArgumentBuilder.literal;
 
 public final class ServerDumpCommand {

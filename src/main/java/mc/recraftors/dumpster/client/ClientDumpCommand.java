@@ -16,7 +16,6 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static mc.recraftors.dumpster.client.ClientLiteralArgumentBuilder.literal;

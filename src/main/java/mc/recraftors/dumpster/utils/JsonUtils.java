@@ -30,7 +30,6 @@ import net.minecraft.util.math.noise.DoublePerlinNoiseSampler;
 import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryEntry;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.SpawnSettings;
 import net.minecraft.world.dimension.DimensionType;
@@ -144,11 +143,11 @@ public final class JsonUtils {
         return a;
     }
 
-    public static JsonArray blockPosJson(BlockPos pos) {
+    public static JsonArray jsonBlockPos(BlockPos pos) {
         return vec3iJson(new Vec3i(pos.getX(), pos.getY(), pos.getZ()));
     }
 
-    public static JsonObject noiseJson(DoublePerlinNoiseSampler.NoiseParameters noise) {
+    public static JsonObject jsonNoise(DoublePerlinNoiseSampler.NoiseParameters noise) {
         JsonObject o = new JsonObject();
         o.add("firstOctave", new JsonPrimitive(noise.firstOctave()));
         JsonArray a = new JsonArray();
@@ -300,6 +299,21 @@ public final class JsonUtils {
         return o;
     }
 
+    public static JsonObject jsonConfiguredCarver(ConfiguredCarver<?> carver) {
+        CarverJsonParser parser = CARVER_PARSERS.get(carver.config().getClass());
+        JsonObject main = new JsonObject();
+        main.add("type", new JsonPrimitive(String.valueOf(Registry.CARVER.getId(carver.carver()))));
+        JsonObject conf;
+        if (parser == null) {
+            conf = unknownJson(carver.config());
+        } else {
+            parser.in(carver.config());
+            conf = parser.toJson();
+        }
+        main.add("config", conf);
+        return main;
+    }
+
     public static JsonElement jsonPlacedFeatureRegEntry(RegistryEntry<PlacedFeature> entry) {
         return entry.getKeyOrValue()
                 .mapLeft(key -> (JsonElement)(new JsonPrimitive(key.getValue().toString())))
@@ -316,7 +330,13 @@ public final class JsonUtils {
                 }).orThrow();
     }
 
-    public static JsonObject spawnersJson(SpawnSettings settings) {
+    public static JsonElement jsonConfiguredCarverRegEntry(RegistryEntry<ConfiguredCarver<?>> entry) {
+        return entry.getKeyOrValue()
+                .mapLeft(key -> (JsonElement)(new JsonPrimitive(key.getValue().toString())))
+                .mapRight(JsonUtils::jsonConfiguredCarver).orThrow();
+    }
+
+    public static JsonObject jsonSpawners(SpawnSettings settings) {
         JsonObject main = new JsonObject();
         for (SpawnGroup group : SpawnGroup.values()) {
             Pool<SpawnSettings.SpawnEntry> pool = settings.getSpawnEntries(group);
@@ -335,7 +355,7 @@ public final class JsonUtils {
         return main;
     }
 
-    public static @NotNull JsonObject spawnCostsJson(SpawnSettings settings) {
+    public static @NotNull JsonObject jsonSpawnCosts(SpawnSettings settings) {
         JsonObject main = new JsonObject();
         //noinspection unchecked
         ((IArrayProvider<EntityType<?>>)settings).dumpster$getArray().forEach(key -> {
@@ -349,7 +369,7 @@ public final class JsonUtils {
         return main;
     }
 
-    public static @NotNull JsonObject biomeJson(@NotNull Biome biome) {
+    public static @NotNull JsonObject jsonBiome(@NotNull Biome biome) {
         JsonObject main = new JsonObject();
         main.add("precipitation", new JsonPrimitive(biome.getPrecipitation().getName()));
         main.add("temperature", new JsonPrimitive(biome.getTemperature()));
@@ -395,37 +415,13 @@ public final class JsonUtils {
         main.add("effects", effects);
         JsonObject carvers = new JsonObject();
         JsonArray airCarvers = new JsonArray();
-        biome.getGenerationSettings().getCarversForStep(GenerationStep.Carver.AIR).forEach(c -> {
-            Optional<RegistryKey<ConfiguredCarver<?>>> k = c.getKey();
-            if (k.isPresent()) {
-                airCarvers.add(k.get().getValue().toString());
-                return;
-            }
-            JsonObject car = new JsonObject();
-            car.add("type", new JsonPrimitive(k.get().getValue().toString()));
-            car.add("config", ((Objectable)((Object)c.value())).toJson());
-            airCarvers.add(car);
-        });
-        carvers.add("air", airCarvers);
         JsonArray liquidCarvers = new JsonArray();
-        biome.getGenerationSettings().getCarversForStep(GenerationStep.Carver.LIQUID).forEach(c -> {
-            Optional<RegistryKey<ConfiguredCarver<?>>> k = c.getKey();
-            if (k.isPresent()) {
-                liquidCarvers.add(k.get().getValue().toString());
-                return;
-            }
-            JsonObject car = new JsonObject();
-            car.add("type", new JsonPrimitive(Registry.CARVER.getId(c.value().carver()).toString()));
-            CarverJsonParser parser = CARVER_PARSERS.get(c.value().config().getClass());
-            JsonObject conf;
-            if (parser == null || !parser.in(c.value().config())) {
-                conf = unknownJson(c.value().config());
-            } else {
-                conf = parser.toJson();
-            }
-            car.add("config", conf);
-            liquidCarvers.add(car);
-        });
+        biome.getGenerationSettings().getCarversForStep(GenerationStep.Carver.AIR)
+                .forEach(c -> airCarvers.add(jsonConfiguredCarverRegEntry(c)));
+        biome.getGenerationSettings().getCarversForStep(GenerationStep.Carver.LIQUID)
+                .forEach(c -> liquidCarvers.add(jsonConfiguredCarverRegEntry(c)));
+        carvers.add("air", airCarvers);
+        carvers.add("liquid", liquidCarvers);
         main.add("carvers", carvers);
         JsonArray features = new JsonArray();
         biome.getGenerationSettings().getFeatures().forEach(step -> {
@@ -435,8 +431,8 @@ public final class JsonUtils {
         });
         main.add("features", features);
         main.add("creature_spawn_probability", new JsonPrimitive(biome.getSpawnSettings().getCreatureSpawnProbability()));
-        main.add("spawners", spawnersJson(biome.getSpawnSettings()));
-        main.add("spawn_costs", spawnCostsJson(biome.getSpawnSettings()));
+        main.add("spawners", jsonSpawners(biome.getSpawnSettings()));
+        main.add("spawn_costs", jsonSpawnCosts(biome.getSpawnSettings()));
         return main;
     }
 }

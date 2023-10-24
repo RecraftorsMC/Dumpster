@@ -23,7 +23,7 @@ public class EndGatewayJsonParser implements FeatureJsonParser {
     public JsonObject toJson() {
         JsonObject main = new JsonObject();
         main.add("exact", new JsonPrimitive(config.isExact()));
-        config.getExitPos().ifPresent(pos -> main.add("exit", JsonUtils.blockPosJson(pos)));
+        config.getExitPos().ifPresent(pos -> main.add("exit", JsonUtils.jsonBlockPos(pos)));
         return main;
     }
 }
