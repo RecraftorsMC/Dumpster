@@ -378,10 +378,6 @@ public final class Utils {
         return i.get();
     }
 
-    private static int dumpData(World world, LocalDateTime now) {
-        return dumpData(world, now, DumpCall.Data.ALL_TRUE);
-    }
-
     public static int dump(World w, DumpCall call) {
         lock.lock();
         FileUtils.clearIfNeeded();
