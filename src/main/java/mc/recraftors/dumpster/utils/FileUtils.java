@@ -19,7 +19,6 @@ import java.util.stream.Stream;
 public final class FileUtils {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final String JSON_EXT = ".json";
-    private static final String WORLDGEN = "worldgen"+File.separator;
 
     private static void err(String target, Identifier id, Exception e) {
         if (ConfigUtils.doErrorPrintStacktrace()) {
