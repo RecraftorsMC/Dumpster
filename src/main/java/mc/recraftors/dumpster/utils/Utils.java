@@ -18,7 +18,6 @@ import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.gen.carver.ConfiguredCarver;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
 import org.apache.logging.log4j.LogManager;
@@ -225,20 +224,15 @@ public final class Utils {
         return Map.of();
     }
 
-    private static Map<String, Set<Identifier>> dumpDimensions(ServerWorld world, LocalDateTime now, AtomicInteger i) {
+    private static Map<String, Set<Identifier>> dumpDimensionTypes(LocalDateTime now, AtomicInteger i) {
         Set<Identifier> err = new HashSet<>();
-        world.getServer().getWorlds().forEach(w -> {
-            if (dumpDim(w, now, i)) {
-                err.add(w.getDimensionKey().getValue());
+        BuiltinRegistries.DIMENSION_TYPE.getEntrySet().forEach(e -> {
+            if (FileUtils.storeDimensionType(JsonUtils.dimensionTypeJson(e.getValue()), e.getKey().getValue(), now, i)) {
+                err.add(e.getKey().getValue());
             }
         });
         if (!err.isEmpty()) return Map.of("Dimension Types", err);
         return Map.of();
-    }
-
-    private static boolean dumpDim(World world, LocalDateTime now, AtomicInteger i) {
-        DimensionType dim = world.getDimension();
-        return FileUtils.storeDimension(JsonUtils.dimensionJson(dim), world.getDimensionKey().getValue(), now, i);
     }
 
     private static Map<String, Set<Identifier>> dumpFunctions(ServerWorld world, LocalDateTime now, AtomicInteger i) {
@@ -365,9 +359,6 @@ public final class Utils {
         if (call.advancements() && ConfigUtils.doDumpAdvancements()) {
             errMap.putAll(dumpAdvancements(w, now, i));
         }
-        if (call.dimensionTypes() && ConfigUtils.doDumpDimensionTypes()) {
-            errMap.putAll(dumpDimensions(w, now, i));
-        }
         if (call.functions() && ConfigUtils.doDumpFunctions()) {
             errMap.putAll(dumpFunctions(w, now, i));
         }
@@ -385,12 +376,11 @@ public final class Utils {
         if (call.recipes() && ConfigUtils.doDataDumpRecipes()) {
             errMap.putAll(dumpRecipes(world, now, i));
         }
+        if (call.dimensionTypes() && ConfigUtils.doDumpDimensionTypes()) {
+            errMap.putAll(dumpDimensionTypes(now, i));
+        }
         if (world instanceof ServerWorld w) {
             dumpDataServer(w, errMap, now, i, call);
-        } else {
-            if (call.dimensionTypes() && ConfigUtils.doDumpDimensionTypes() && dumpDim(world, now, i)) {
-                errMap.put("Dimension Types", Set.of(world.getDimensionKey().getValue()));
-            }
         }
         if (call.worldgen()) {
             errMap.putAll(dumpWorldgen(now, i, call.worldgenO()));

@@ -253,7 +253,7 @@ public final class JsonUtils {
         return main;
     }
 
-    public static JsonObject dimensionJson(DimensionType dim) {
+    public static JsonObject dimensionTypeJson(DimensionType dim) {
         JsonObject main = new JsonObject();
         main.add("ultrawarm", new JsonPrimitive(dim.ultrawarm()));
         main.add("natural", new JsonPrimitive(dim.natural()));
