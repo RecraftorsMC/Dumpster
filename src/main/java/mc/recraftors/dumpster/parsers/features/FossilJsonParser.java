@@ -23,6 +23,7 @@ public class FossilJsonParser implements FeatureJsonParser {
 
     @Override
     public JsonObject toJson() {
+        if (config == null) return null;
         JsonObject main = new JsonObject();
         JsonArray structures = new JsonArray();
         config.fossilStructures.forEach(i -> structures.add(i.toString()));

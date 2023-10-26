@@ -23,6 +23,7 @@ public class DiskJsonParser implements FeatureJsonParser {
 
     @Override
     public JsonObject toJson() {
+        if (config == null) return null;
         JsonObject main = new JsonObject();
         JsonObject state = new JsonObject();
         state.add("fallback", JsonUtils.objectJson(config.stateProvider().fallback()));

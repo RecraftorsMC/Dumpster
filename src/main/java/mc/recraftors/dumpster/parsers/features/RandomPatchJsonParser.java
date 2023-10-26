@@ -21,6 +21,7 @@ public class RandomPatchJsonParser implements FeatureJsonParser {
 
     @Override
     public JsonObject toJson() {
+        if (config == null) return null;
         JsonObject main = new JsonObject();
         main.add("tries", new JsonPrimitive(config.tries()));
         main.add("xz_spread", new JsonPrimitive(config.xzSpread()));

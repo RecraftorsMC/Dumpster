@@ -21,6 +21,7 @@ public class DripstoneClusterJsonParser implements FeatureJsonParser {
 
     @Override
     public JsonObject toJson() {
+        if (config == null) return null;
         JsonObject main = new JsonObject();
         main.add("floor_to_ceiling_search_range", new JsonPrimitive(config.floorToCeilingSearchRange));
         main.add("height", JsonUtils.objectJson(config.height));

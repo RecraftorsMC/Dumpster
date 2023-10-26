@@ -20,6 +20,7 @@ public class SingleStateJsonParser implements FeatureJsonParser {
 
     @Override
     public JsonObject toJson() {
+        if (config == null) return null;
         JsonObject main = new JsonObject();
         main.add("state", JsonUtils.blockStateJSon(config.state));
         return main;

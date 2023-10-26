@@ -22,6 +22,7 @@ public class EndSpikeJsonParser implements FeatureJsonParser {
 
     @Override
     public JsonObject toJson() {
+        if (config == null) return null;
         JsonObject main = new JsonObject();
         main.add("crystal_invulnerable", new JsonPrimitive(config.isCrystalInvulnerable()));
         if (config.getPos() != null) {
