@@ -25,6 +25,9 @@ import net.minecraft.world.gen.densityfunction.DensityFunction;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,7 +74,7 @@ public final class Utils {
         REGISTRIES.add(reg);
     }
 
-    private static int dumpRegistries(LocalDateTime now) {
+    private static int dumpRegistries(@NotNull LocalDateTime now) {
         AtomicInteger i = new AtomicInteger();
         Set<Identifier> err = new HashSet<>();
         for (Registry<?> reg : REGISTRIES) {
@@ -105,7 +108,8 @@ public final class Utils {
         return i.get();
     }
 
-    private static Map<String, Set<Identifier>> dumpTags(World world, LocalDateTime now, AtomicInteger i) {
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpTags(
+            @NotNull World world, @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
         Set<Identifier> err = new HashSet<>();
         for (Registry<?> reg : REGISTRIES) {
             try {
@@ -129,7 +133,8 @@ public final class Utils {
         return Map.of("Tags", err);
     }
 
-    private static RecipeJsonParser resolveRecipeParser(Recipe<?> recipe, Identifier id, RecipeJsonParser parser) {
+    private static @Nullable RecipeJsonParser resolveRecipeParser(
+            @NotNull Recipe<?> recipe, @NotNull Identifier id, @NotNull RecipeJsonParser parser) {
         if (!parser.getClass().isAnnotationPresent(TargetRecipeType.class)) return null;
         TargetRecipeType type = parser.getClass().getAnnotation(TargetRecipeType.class);
         for (String s : type.supports()) {
@@ -140,7 +145,7 @@ public final class Utils {
         return null;
     }
 
-    private static RecipeJsonParser getRecipeParser(Recipe<?> recipe) {
+    private static @Nullable RecipeJsonParser getRecipeParser(@NotNull Recipe<?> recipe) {
         Identifier id = Registry.RECIPE_TYPE.getId(recipe.getType());
         if (id == null) {
             return null;
@@ -178,7 +183,8 @@ public final class Utils {
         return 0;
     }
 
-    private static Map<String, Set<Identifier>> dumpRecipes(World world, LocalDateTime now, AtomicInteger i) {
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpRecipes(
+            @NotNull World world, @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
         Set<Identifier> nonParsableTypes = new HashSet<>();
         Set<Identifier> erroredRecipes = new HashSet<>();
         world.getRecipeManager().values().forEach(recipe -> {
@@ -194,10 +200,11 @@ public final class Utils {
         Map<String, Set<Identifier>> out = new HashMap<>();
         if (!nonParsableTypes.isEmpty()) out.put("Recipe Types", nonParsableTypes);
         if (!erroredRecipes.isEmpty()) out.put("Recipes", erroredRecipes);
-        return out;
+        return Map.copyOf(out);
     }
 
-    private static Map<String, Set<Identifier>> dumpLootTables(ServerWorld world, LocalDateTime now, AtomicInteger i) {
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpLootTables(
+            @NotNull ServerWorld world, @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
         Set<Identifier> errTables = new HashSet<>();
         LootManager manager = world.getServer().getLootManager();
         manager.getTableIds().forEach(id -> {
@@ -215,7 +222,8 @@ public final class Utils {
         return Map.of("Loot Tables", errTables);
     }
 
-    private static Map<String, Set<Identifier>> dumpAdvancements(ServerWorld world, LocalDateTime now, AtomicInteger i) {
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpAdvancements(
+            @NotNull ServerWorld world, @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
         Set<Identifier> err = new HashSet<>();
         world.getServer().getAdvancementLoader().getAdvancements().forEach(adv -> {
             JsonObject o = JsonUtils.advancementToJson(adv);
@@ -227,7 +235,8 @@ public final class Utils {
         return Map.of();
     }
 
-    private static Map<String, Set<Identifier>> dumpDimensions(ServerWorld world, LocalDateTime now, AtomicInteger i) {
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpDimensions(
+            @NotNull ServerWorld world, @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
         Set<Identifier> err = new HashSet<>();
         @SuppressWarnings("unchecked")
         GeneratorOptions options = ((IObjectProvider<GeneratorOptions>) world.getStructureAccessor()).dumpster$getObject();
@@ -241,7 +250,8 @@ public final class Utils {
         return Map.of();
     }
 
-    private static Map<String, Set<Identifier>> dumpDimensionTypes(LocalDateTime now, AtomicInteger i) {
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpDimensionTypes(
+            @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.DIMENSION_TYPE.getEntrySet().forEach(e -> {
             if (FileUtils.storeDimensionType(JsonUtils.dimensionTypeJson(e.getValue()), e.getKey().getValue(), now, i)) {
@@ -252,7 +262,8 @@ public final class Utils {
         return Map.of();
     }
 
-    private static Map<String, Set<Identifier>> dumpFunctions(ServerWorld world, LocalDateTime now, AtomicInteger i) {
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpFunctions(
+            @NotNull ServerWorld world, @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
         Set<Identifier> err = new HashSet<>();
         world.getServer().getCommandFunctionManager().getAllFunctions().forEach(id -> {
             Optional<CommandFunction> oF = world.getServer().getCommandFunctionManager().getFunction(id);
@@ -267,7 +278,8 @@ public final class Utils {
         return Map.of();
     }
 
-    private static Map<String, Set<Identifier>> dumpStructureTemplates(ServerWorld world, LocalDateTime now, AtomicInteger i) {
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpStructureTemplates(
+            @NotNull ServerWorld world, @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
         Set<Identifier> err = new HashSet<>();
         Iterator<Identifier> iter = world.getStructureTemplateManager().streamTemplates().iterator();
         Identifier id = new Identifier("a");
@@ -294,7 +306,7 @@ public final class Utils {
         return Map.of();
     }
 
-    private static Map<String, Set<Identifier>> dumpBiomes(LocalDateTime now, AtomicInteger i) {
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpBiomes(@NotNull LocalDateTime now, @NotNull AtomicInteger i) {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.DYNAMIC_REGISTRY_MANAGER.getManaged(Registry.BIOME_KEY).getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
@@ -315,7 +327,7 @@ public final class Utils {
         return Map.of();
     }
 
-    private static Map<String, Set<Identifier>> dumpCarvers(LocalDateTime now, AtomicInteger i) {
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpCarvers(@NotNull LocalDateTime now, @NotNull AtomicInteger i) {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.DYNAMIC_REGISTRY_MANAGER.getManaged(Registry.CONFIGURED_CARVER_KEY).getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
@@ -334,7 +346,8 @@ public final class Utils {
         return Map.of();
     }
 
-    private static Map<String, Set<Identifier>> dumpConfiguredFeatures(LocalDateTime now, AtomicInteger i) {
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpConfiguredFeatures(
+            @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.CONFIGURED_FEATURE.getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
@@ -353,7 +366,8 @@ public final class Utils {
         return Map.of("Configured Features", err);
     }
 
-    private static Map<String, Set<Identifier>> dumpDensityFunctions(LocalDateTime now, AtomicInteger i) {
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpDensityFunctions(
+            @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
         Set<Identifier> err= new HashSet<>();
         BuiltinRegistries.DENSITY_FUNCTION.getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
@@ -372,8 +386,8 @@ public final class Utils {
         return Map.of("Density Functions", err);
     }
 
-    private static Map<String, Set<Identifier>> dumpWorldgen(LocalDateTime now, AtomicInteger i,
-                                                     DumpCall.Worldgen call) {
+    private static @NotNull Map<String, Set<Identifier>> dumpWorldgen(
+            @NotNull LocalDateTime now, @NotNull AtomicInteger i, @NotNull DumpCall.Worldgen call) {
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
         if (call.biomes() && ConfigUtils.doDumpWorldgenBiomes()) {
             errMap.putAll(dumpBiomes(now, i));
@@ -390,8 +404,8 @@ public final class Utils {
         return errMap;
     }
 
-    public static void  dumpDataServer(ServerWorld w, Map<String, Set<Identifier>> errMap, LocalDateTime now,
-                                       AtomicInteger i, DumpCall.Data call) {
+    public static void  dumpDataServer(@NotNull ServerWorld w, Map<String, @NotNull Set<Identifier>> errMap,
+                                       @NotNull LocalDateTime now, @NotNull AtomicInteger i, @NotNull DumpCall.Data call) {
         if (call.lootTables() && ConfigUtils.doDumpLootTables()) {
             errMap.putAll(dumpLootTables(w, now, i));
         }
@@ -409,7 +423,7 @@ public final class Utils {
         }
     }
 
-    public static int dumpData(World world, LocalDateTime now, DumpCall.Data call) {
+    public static int dumpData(@NotNull World world, @NotNull LocalDateTime now, @NotNull DumpCall.Data call) {
         AtomicInteger i = new AtomicInteger();
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
         if (call.tags() && ConfigUtils.doDataDumpTags()) {
@@ -433,7 +447,7 @@ public final class Utils {
         return i.get();
     }
 
-    public static int dump(World w, DumpCall call) {
+    public static int dump(@NotNull World w, @NotNull DumpCall call) {
         lock.lock();
         FileUtils.clearIfNeeded();
         LocalDateTime now = LocalDateTime.now();

@@ -26,23 +26,23 @@ public final class FileUtils {
         }
     }
 
-    public static String getNow() {
+    public static @NotNull String getNow() {
         return getNow(LocalDateTime.now());
     }
 
-    public static String getNow(LocalDateTime now) {
+    public static @NotNull String getNow(@NotNull LocalDateTime now) {
         return now.format(DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm-ss"));
     }
 
-    public static String singleNameIdPath(Identifier id) {
+    public static @NotNull String singleNameIdPath(@NotNull Identifier id) {
         return id.getNamespace() + "_" + String.join("-", id.getPath().split("/"));
     }
 
-    public static StringBuilder pathBuilder(LocalDateTime now, String target, Identifier type) {
+    public static @NotNull StringBuilder pathBuilder(LocalDateTime now, String target, Identifier type) {
         return pathBuilder(now, target, singleNameIdPath(type));
     }
 
-    public static StringBuilder pathBuilder(LocalDateTime now, String target, String type) {
+    public static @NotNull StringBuilder pathBuilder(LocalDateTime now, String target, String type) {
         StringBuilder builder = new StringBuilder(ConfigUtils.dumpFileMainFolder());
         if (ConfigUtils.doDumpFileOrganizeFolderByDate()) {
             builder.append(File.separator).append(getNow(now));
@@ -71,7 +71,7 @@ public final class FileUtils {
         }
     }
 
-    public static void writeEntries(String folder, Identifier name, Collection<RegistryEntry> entries)
+    public static void writeEntries(String folder, Identifier name, @NotNull Collection<RegistryEntry> entries)
             throws IOException {
         File f = new File(folder);
         Files.createDirectories(f.toPath());
@@ -112,7 +112,7 @@ public final class FileUtils {
         storeRaw(GSON.toJson(e), s);
     }
 
-    static void storeNbt(NbtElement e, String s) throws IOException {
+    static void storeNbt(@NotNull NbtElement e, String s) throws IOException {
         File f = new File(s);
         Files.createDirectories(f.getParentFile().toPath());
         try (DataOutputStream stream = new DataOutputStream(new FileOutputStream(s))) {
@@ -141,7 +141,7 @@ public final class FileUtils {
         }
     }
 
-    static void storeLootTable(JsonObject elem, Identifier id, LocalDateTime now, AtomicInteger i) {
+    static void storeLootTable(JsonObject elem, @NotNull Identifier id, LocalDateTime now, AtomicInteger i) {
         try {
             StringBuilder builder = pathBuilder(now, "loot_tables", id.getNamespace());
             builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
@@ -152,7 +152,7 @@ public final class FileUtils {
         }
     }
 
-    static boolean storeAdvancement(JsonObject o, Identifier id, LocalDateTime now, AtomicInteger i) {
+    static boolean storeAdvancement(JsonObject o, @NotNull Identifier id, LocalDateTime now, AtomicInteger i) {
         try {
             StringBuilder builder = pathBuilder(now, "advancements", id.getNamespace());
             builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
@@ -165,7 +165,7 @@ public final class FileUtils {
         }
     }
 
-    static boolean storeDimension(JsonObject o, Identifier id, LocalDateTime now, AtomicInteger i) {
+    static boolean storeDimension(JsonObject o, @NotNull Identifier id, LocalDateTime now, AtomicInteger i) {
         try {
             StringBuilder builder = pathBuilder(now, "dimension", id.getNamespace());
             builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
@@ -178,7 +178,7 @@ public final class FileUtils {
         }
     }
 
-    static boolean storeDimensionType(JsonObject o, Identifier id, LocalDateTime now, AtomicInteger i) {
+    static boolean storeDimensionType(JsonObject o, @NotNull Identifier id, LocalDateTime now, AtomicInteger i) {
         try {
             StringBuilder builder = pathBuilder(now, "dimension_type", id.getNamespace());
             builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
@@ -191,7 +191,7 @@ public final class FileUtils {
         }
     }
 
-    static boolean storeFunction(String f, Identifier id, LocalDateTime now, AtomicInteger i) {
+    static boolean storeFunction(String f, @NotNull Identifier id, LocalDateTime now, AtomicInteger i) {
         try {
             StringBuilder builder = pathBuilder(now, "functions", id.getNamespace());
             builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(".mcfunction");
@@ -204,7 +204,7 @@ public final class FileUtils {
         }
     }
 
-    static boolean storeStructureTemplate(NbtElement nbt, Identifier id, LocalDateTime now, AtomicInteger i) {
+    static boolean storeStructureTemplate(NbtElement nbt, @NotNull Identifier id, LocalDateTime now, AtomicInteger i) {
         try {
             StringBuilder builder = pathBuilder(now, "structures", id.getNamespace());
             builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(".nbt");
@@ -232,7 +232,7 @@ public final class FileUtils {
         }
     }
 
-    static void writeErrors(Map<String, Set<Identifier>> setMap) {
+    static void writeErrors(@NotNull Map<String, Set<Identifier>> setMap) {
         try {
             Path p = Path.of(ConfigUtils.dumpFileMainFolder(), "errors.txt");
             Files.createDirectories(p.getParent());
