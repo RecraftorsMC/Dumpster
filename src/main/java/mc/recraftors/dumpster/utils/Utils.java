@@ -462,7 +462,7 @@ public final class Utils {
         if (world instanceof ServerWorld w) {
             dumpDataServer(w, errMap, now, i, call);
         }
-        if (call.worldgen()) {
+        if (call.worldgen() && call.worldgenO() != null) {
             errMap.putAll(dumpWorldgen(now, i, call.worldgenO()));
         }
         if (i.get() > 0) {
@@ -479,7 +479,7 @@ public final class Utils {
         if (call.registries()) {
             n = dumpRegistries(now);
         }
-        if (call.data()) {
+        if (call.data() && w != null && call.dataO() != null) {
             n += dumpData(w, now, call.dataO());
         }
         lock.unlock();
