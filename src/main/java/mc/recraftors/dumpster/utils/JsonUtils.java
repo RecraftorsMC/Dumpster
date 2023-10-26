@@ -39,6 +39,7 @@ import net.minecraft.world.biome.source.BiomeSource;
 import net.minecraft.world.biome.source.util.MultiNoiseUtil;
 import net.minecraft.world.dimension.DimensionOptions;
 import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.gen.FlatLevelGeneratorPreset;
 import net.minecraft.world.gen.GenerationStep;
 import net.minecraft.world.gen.carver.CarverConfig;
 import net.minecraft.world.gen.carver.ConfiguredCarver;
@@ -489,6 +490,12 @@ public final class JsonUtils {
     public static JsonObject placementModifierJson(PlacementModifier modifier) {
         Optional<JsonElement> e = PlacementModifier.CODEC.encodeStart(JsonOps.INSTANCE, modifier).result();
         if (e.isEmpty() || !e.get().isJsonObject()) return unknownJson(modifier);
+        return e.get().getAsJsonObject();
+    }
+
+    public static @NotNull JsonObject flatLevelGeneratorPresetJson(FlatLevelGeneratorPreset preset) {
+        Optional<JsonElement> e = FlatLevelGeneratorPreset.CODEC.encodeStart(JsonOps.INSTANCE, preset).result();
+        if (e.isEmpty() || !e.get().isJsonObject()) return unknownJson(preset);
         return e.get().getAsJsonObject();
     }
 

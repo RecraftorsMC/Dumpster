@@ -19,6 +19,7 @@ import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
+import net.minecraft.world.gen.FlatLevelGeneratorPreset;
 import net.minecraft.world.gen.GeneratorOptions;
 import net.minecraft.world.gen.carver.ConfiguredCarver;
 import net.minecraft.world.gen.densityfunction.DensityFunction;
@@ -368,7 +369,7 @@ public final class Utils {
 
     private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpDensityFunctions(
             @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
-        Set<Identifier> err= new HashSet<>();
+        Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.DENSITY_FUNCTION.getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
             DensityFunction function = e.getValue();
@@ -386,6 +387,26 @@ public final class Utils {
         return Map.of("Density Functions", err);
     }
 
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpFlatLevelGeneratorPresets(
+            @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
+        BuiltinRegistries.FLAT_LEVEL_GENERATOR_PRESET.getEntrySet().forEach(e -> {
+            Identifier id = e.getKey().getValue();
+            FlatLevelGeneratorPreset preset = e.getValue();
+            if (preset == null) {
+                err.add(id);
+                i.incrementAndGet();
+                return;
+            }
+            JsonObject o = JsonUtils.flatLevelGeneratorPresetJson(preset);
+            if (FileUtils.storeWorldgen(o, id, "flat_level_generator_preset", now, i)) {
+                err.add(id);
+            }
+        });
+        if (err.isEmpty()) return Map.of();
+        return Map.of("Flat Level Generator Presets", err);
+    }
+
     private static @NotNull Map<String, Set<Identifier>> dumpWorldgen(
             @NotNull LocalDateTime now, @NotNull AtomicInteger i, @NotNull DumpCall.Worldgen call) {
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
@@ -400,6 +421,9 @@ public final class Utils {
         }
         if (call.densityFunctions() && ConfigUtils.doDumpWorldgenDensityFunctions()) {
             errMap.putAll(dumpDensityFunctions(now, i));
+        }
+        if (call.flatGeneratorPresets() && ConfigUtils.doDumpWorldgenFlatGeneratorPresets()) {
+            errMap.putAll(dumpFlatLevelGeneratorPresets(now, i));
         }
         return errMap;
     }
@@ -447,7 +471,7 @@ public final class Utils {
         return i.get();
     }
 
-    public static int dump(@NotNull World w, @NotNull DumpCall call) {
+    public static int dump(@Nullable World w, @NotNull DumpCall call) {
         lock.lock();
         FileUtils.clearIfNeeded();
         LocalDateTime now = LocalDateTime.now();

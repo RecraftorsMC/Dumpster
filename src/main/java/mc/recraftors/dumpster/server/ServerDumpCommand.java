@@ -31,9 +31,11 @@ public final class ServerDumpCommand {
                         .then(literal("tags").executes(c -> dumpData(c, new DumpCall.Data(F, F, F, F, F, F, F, T, F, null))))
                         .then(literal("worldgen")
                                 .executes(c -> dumpData(c, new DumpCall.Data(F, F, F, F, F, F, F, F, T, DumpCall.Worldgen.ALL_TRUE)))
-                                .then(literal("biomes").executes(c -> dumpWorldgen(c, T, F, F)))
-                                .then(literal("configured-carvers").executes(c -> dumpWorldgen(c, F, T, F)))
-                                .then(literal("configured-features").executes(c -> dumpWorldgen(c, F, F, T)))
+                                .then(literal("biomes").executes(c -> dumpWorldgen(c, T, F, F, F, F)))
+                                .then(literal("configured-carvers").executes(c -> dumpWorldgen(c, F, T, F, F, F)))
+                                .then(literal("configured-features").executes(c -> dumpWorldgen(c, F, F, T, F, F)))
+                                .then(literal("density-functions").executes(c -> dumpWorldgen(c, F, F, F, T, F)))
+                                .then(literal("flat-generator-presets").executes(c -> dumpWorldgen(c, F, F, F, F, T)))
                         )
                 )
                 .then(literal("registries")
@@ -63,8 +65,8 @@ public final class ServerDumpCommand {
         return n;
     }
 
-    private static int dumpWorldgen(CommandContext<ServerCommandSource> context, boolean b1, boolean b2, boolean b3) {
-        return dumpData(context, new DumpCall.Data(F,F,F,F,F,F,F,F,T, new DumpCall.Worldgen(b1, b2, b3,F,F,F,F,F,F)));
+    private static int dumpWorldgen(CommandContext<ServerCommandSource> context, boolean b1, boolean b2, boolean b3, boolean b4, boolean b5) {
+        return dumpData(context, new DumpCall.Data(F,F,F,F,F,F,F,F,T, new DumpCall.Worldgen(b1, b2, b3, b4, b5, F,F,F,F,F)));
     }
 
     private static int dumpData(CommandContext<ServerCommandSource> context, DumpCall.Data call) {

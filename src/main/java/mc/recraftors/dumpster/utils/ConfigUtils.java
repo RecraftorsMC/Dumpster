@@ -34,6 +34,7 @@ public final class ConfigUtils {
     private static final String DATA_DUMP_WORLDGEN_CARVERS = "dump.data.dumpWorldgen.carvers";
     private static final String DATA_DUMP_WORLDGEN_CONF_FEATURES = "dump.data.dumpWorldgen.configuredFeatures";
     private static final String DATA_DUMP_WORLDGEN_DENSITY_FUNCTIONS = "dump.data.dumpWorldgen.densityFunctions";
+    private static final String DATA_DUMP_WORLDGEN_FLAT_PRESETS = "dump.data.dumpWorldgen.flatPresets";
     private static final String DUMP_MAIN_FOLDER = "dumpFile.mainFolder";
     private static final String DUMP_ORG_DATE = "dumpFile.organizeFolderByDate";
     private static final String DUMP_ORG_TYPE = "dumpFile.organizeFolderByType";
@@ -63,6 +64,7 @@ public final class ConfigUtils {
         defaults.setProperty(DATA_DUMP_WORLDGEN_CARVERS, TRUE);
         defaults.setProperty(DATA_DUMP_WORLDGEN_CONF_FEATURES, TRUE);
         defaults.setProperty(DATA_DUMP_WORLDGEN_DENSITY_FUNCTIONS, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_FLAT_PRESETS, TRUE);
         defaults.setProperty(DUMP_MAIN_FOLDER, "dump");
         defaults.setProperty(DUMP_ORG_DATE, FALSE);
         defaults.setProperty(DUMP_ORG_TYPE, TRUE);
@@ -86,6 +88,7 @@ public final class ConfigUtils {
         PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_CARVERS, TRUE);
         PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_CONF_FEATURES, TRUE);
         PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_DENSITY_FUNCTIONS, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_FLAT_PRESETS, TRUE);
         PROPERTIES.setProperty(DUMP_MAIN_FOLDER, "dump");
         PROPERTIES.setProperty(DUMP_ORG_DATE, FALSE);
         PROPERTIES.setProperty(DUMP_ORG_TYPE, TRUE);
@@ -163,6 +166,10 @@ public final class ConfigUtils {
 
     public static boolean doDumpWorldgenDensityFunctions() {
         return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_DENSITY_FUNCTIONS));
+    }
+
+    public static boolean doDumpWorldgenFlatGeneratorPresets() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_FLAT_PRESETS));
     }
 
     public static String dumpFileMainFolder() {
