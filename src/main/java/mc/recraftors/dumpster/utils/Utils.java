@@ -4,6 +4,7 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import mc.recraftors.dumpster.parsers.recipes.RecipeJsonParser;
 import mc.recraftors.dumpster.parsers.recipes.TargetRecipeType;
+import mc.recraftors.dumpster.utils.accessors.IObjectProvider;
 import mc.recraftors.dumpster.utils.accessors.IStringable;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.loot.LootManager;
@@ -18,7 +19,9 @@ import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
+import net.minecraft.world.gen.GeneratorOptions;
 import net.minecraft.world.gen.carver.ConfiguredCarver;
+import net.minecraft.world.gen.densityfunction.DensityFunction;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -224,6 +227,20 @@ public final class Utils {
         return Map.of();
     }
 
+    private static Map<String, Set<Identifier>> dumpDimensions(ServerWorld world, LocalDateTime now, AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
+        @SuppressWarnings("unchecked")
+        GeneratorOptions options = ((IObjectProvider<GeneratorOptions>) world.getStructureAccessor()).dumpster$getObject();
+        options.getDimensions().getEntrySet().forEach(entry -> {
+            Identifier id = entry.getKey().getValue();
+            if (FileUtils.storeDimension(JsonUtils.dimensionJson(entry.getValue()), id, now, i)) {
+                err.add(entry.getKey().getValue());
+            }
+        });
+        if (!err.isEmpty()) return Map.of("Dimensions", err);
+        return Map.of();
+    }
+
     private static Map<String, Set<Identifier>> dumpDimensionTypes(LocalDateTime now, AtomicInteger i) {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.DIMENSION_TYPE.getEntrySet().forEach(e -> {
@@ -287,7 +304,7 @@ public final class Utils {
                 i.getAndIncrement();
                 return;
             }
-            JsonObject o = JsonUtils.jsonBiome(b);
+            JsonObject o = JsonUtils.biomeJson(b);
             if (FileUtils.storeWorldgen(o, id, "biome", now, i)) {
                 err.add(id);
             }
@@ -308,7 +325,7 @@ public final class Utils {
                 i.incrementAndGet();
                 return;
             }
-            JsonObject o = JsonUtils.jsonConfiguredCarver(carver);
+            JsonObject o = JsonUtils.configuredCarverJson(carver);
             if (FileUtils.storeWorldgen(o, id, "configured_carver", now, i)) {
                 err.add(id);
             }
@@ -319,7 +336,7 @@ public final class Utils {
 
     private static Map<String, Set<Identifier>> dumpConfiguredFeatures(LocalDateTime now, AtomicInteger i) {
         Set<Identifier> err = new HashSet<>();
-        BuiltinRegistries.DYNAMIC_REGISTRY_MANAGER.getManaged(Registry.CONFIGURED_FEATURE_KEY).getEntrySet().forEach(e -> {
+        BuiltinRegistries.CONFIGURED_FEATURE.getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
             ConfiguredFeature<?,?> feature = e.getValue();
             if (feature == null) {
@@ -327,13 +344,32 @@ public final class Utils {
                 i.incrementAndGet();
                 return;
             }
-            JsonObject o = JsonUtils.jsonConfiguredFeature(feature);
+            JsonObject o = JsonUtils.configuredFeatureJson(feature);
             if (FileUtils.storeWorldgen(o, id, "configured_feature", now, i)) {
                 err.add(id);
             }
         });
         if (err.isEmpty()) return Map.of();
         return Map.of("Configured Features", err);
+    }
+
+    private static Map<String, Set<Identifier>> dumpDensityFunctions(LocalDateTime now, AtomicInteger i) {
+        Set<Identifier> err= new HashSet<>();
+        BuiltinRegistries.DENSITY_FUNCTION.getEntrySet().forEach(e -> {
+            Identifier id = e.getKey().getValue();
+            DensityFunction function = e.getValue();
+            if (function == null) {
+                err.add(id);
+                i.incrementAndGet();
+                return;
+            }
+            JsonObject o = JsonUtils.densityFunctionJson(function);
+            if (FileUtils.storeWorldgen(o, id, "density_function", now, i)) {
+                err.add(id);
+            }
+        });
+        if (err.isEmpty()) return Map.of();
+        return Map.of("Density Functions", err);
     }
 
     private static Map<String, Set<Identifier>> dumpWorldgen(LocalDateTime now, AtomicInteger i,
@@ -347,6 +383,9 @@ public final class Utils {
         }
         if (call.features() && ConfigUtils.doDumpWorldgenConfiguredFeatures()) {
             errMap.putAll(dumpConfiguredFeatures(now, i));
+        }
+        if (call.densityFunctions() && ConfigUtils.doDumpWorldgenDensityFunctions()) {
+            errMap.putAll(dumpDensityFunctions(now, i));
         }
         return errMap;
     }
@@ -364,6 +403,9 @@ public final class Utils {
         }
         if (call.structures() && ConfigUtils.doDumpStructureTemplates()) {
             errMap.putAll(dumpStructureTemplates(w, now, i));
+        }
+        if (call.dimensions() && ConfigUtils.doDumpDimensions()) {
+            errMap.putAll(dumpDimensions(w, now, i));
         }
     }
 

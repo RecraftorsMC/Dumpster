@@ -165,6 +165,19 @@ public final class FileUtils {
         }
     }
 
+    static boolean storeDimension(JsonObject o, Identifier id, LocalDateTime now, AtomicInteger i) {
+        try {
+            StringBuilder builder = pathBuilder(now, "dimension", id.getNamespace());
+            builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
+            storeJson(o, builder.toString());
+            return false;
+        } catch (IOException e) {
+            err("dimension", id, e);
+            i.incrementAndGet();
+            return true;
+        }
+    }
+
     static boolean storeDimensionType(JsonObject o, Identifier id, LocalDateTime now, AtomicInteger i) {
         try {
             StringBuilder builder = pathBuilder(now, "dimension_type", id.getNamespace());

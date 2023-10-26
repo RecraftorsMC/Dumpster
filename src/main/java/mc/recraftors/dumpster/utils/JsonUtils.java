@@ -1,6 +1,7 @@
 package mc.recraftors.dumpster.utils;
 
 import com.google.gson.*;
+import com.mojang.serialization.JsonOps;
 import mc.recraftors.dumpster.utils.accessors.BiomeWeatherAccessor;
 import mc.recraftors.dumpster.utils.accessors.IArrayProvider;
 import mc.recraftors.dumpster.utils.accessors.IBooleanProvider;
@@ -21,6 +22,7 @@ import net.minecraft.nbt.*;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.state.State;
 import net.minecraft.state.property.Property;
+import net.minecraft.structure.StructureSet;
 import net.minecraft.structure.processor.StructureProcessorList;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.Pool;
@@ -30,14 +32,24 @@ import net.minecraft.util.math.noise.DoublePerlinNoiseSampler;
 import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryEntry;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.SpawnSettings;
+import net.minecraft.world.biome.source.BiomeSource;
+import net.minecraft.world.biome.source.util.MultiNoiseUtil;
+import net.minecraft.world.dimension.DimensionOptions;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.gen.GenerationStep;
 import net.minecraft.world.gen.carver.CarverConfig;
 import net.minecraft.world.gen.carver.ConfiguredCarver;
+import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
+import net.minecraft.world.gen.densityfunction.DensityFunction;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
 import net.minecraft.world.gen.feature.PlacedFeature;
+import net.minecraft.world.gen.noise.NoiseRouter;
+import net.minecraft.world.gen.placementmodifier.PlacementModifier;
+import net.minecraft.world.gen.structure.Structure;
+import net.minecraft.world.gen.surfacebuilder.MaterialRules;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -45,6 +57,7 @@ import java.util.*;
 public final class JsonUtils {
     private JsonUtils() {}
     public static final String C_SOUND = "sound";
+    private static final String C_TEMP = "temperature";
 
     private static final Map<Class<? extends CarverConfig>,CarverJsonParser> CARVER_PARSERS;
     private static final Map<Identifier, FeatureJsonParser> FEATURE_PARSERS;
@@ -197,7 +210,7 @@ public final class JsonUtils {
         }
     }
 
-    static void addProperties(State<?,?> state, JsonObject object) {
+    static void addStateProperties(State<?,?> state, JsonObject object) {
         Collection<Property<?>> properties = state.getProperties();
         if (!properties.isEmpty()) {
             JsonObject props = new JsonObject();
@@ -209,22 +222,15 @@ public final class JsonUtils {
     public static JsonObject blockStateJSon(BlockState state) {
         JsonObject main = new JsonObject();
         main.add("Name", new JsonPrimitive(String.valueOf(Registry.BLOCK.getId(state.getBlock()))));
-        addProperties(state, main);
+        addStateProperties(state, main);
         return main;
     }
 
     public static JsonObject fluidStateJson(FluidState state) {
         JsonObject main = new JsonObject();
         main.add("Name", new JsonPrimitive(String.valueOf(Registry.FLUID.getId(state.getFluid()))));
-        addProperties(state, main);
+        addStateProperties(state, main);
         return main;
-    }
-
-    public static JsonElement jsonBlockRegEntry(RegistryEntry<Block> entry) {
-        return entry.getKeyOrValue()
-                .mapLeft(key -> (new JsonPrimitive(String.valueOf(key.getValue()))))
-                .mapRight(b -> new JsonPrimitive(String.valueOf(Registry.BLOCK.getId(b))))
-                .orThrow();
     }
 
     public static JsonObject advancementToJson(Advancement adv) {
@@ -250,6 +256,31 @@ public final class JsonUtils {
             req.add(reqX);
         }
         main.add("requirements", req);
+        return main;
+    }
+
+    public static JsonObject structureJson(Structure structure) {
+        Optional<JsonElement> e = Structure.STRUCTURE_CODEC.encodeStart(JsonOps.INSTANCE, structure).result();
+        if (e.isEmpty() || !e.get().isJsonObject()) return unknownJson(e);
+        return e.get().getAsJsonObject();
+    }
+
+    public static JsonObject structureSetJson(StructureSet set) {
+        JsonObject main = new JsonObject();
+        JsonObject structures = new JsonObject();
+        set.structures().forEach(entry -> {
+            JsonObject structure = new JsonObject();
+            structure.add("structure", jsonStructureRegEntry(entry.structure()));
+        });
+        main.add("structures", structures);
+        main.add("placement", objectJson(set.placement()));
+        return main;
+    }
+
+    public static JsonObject dimensionJson(DimensionOptions dimension) {
+        JsonObject main = new JsonObject();
+        main.add("type", jsonDimensionTypeRegEntry(dimension.getDimensionTypeEntry()));
+        main.add("generator", objectJson(dimension.getChunkGenerator()));
         return main;
     }
 
@@ -285,21 +316,23 @@ public final class JsonUtils {
         return main;
     }
 
-    public static JsonObject jsonConfiguredFeature(ConfiguredFeature<?,?> feature) {
+    public static JsonObject configuredFeatureJson(ConfiguredFeature<?,?> feature) {
         FeatureJsonParser parser = getFeatureParser(feature);
         return parser == null ? unknownJson(feature) : parser.toJson();
     }
 
-    public static JsonElement jsonPlacedFeature(PlacedFeature feature) {
-        JsonObject o = new JsonObject();
+    public static JsonElement placedFeatureJson(PlacedFeature feature) {
+        JsonObject main = new JsonObject();
         feature.feature().getKeyOrValue().ifLeft(
-                key -> o.add("feature", new JsonPrimitive(key.getValue().toString()))
-        ).ifRight(f -> o.add("feature", jsonConfiguredFeature(f)));
-        //TODO: placement
-        return o;
+                key -> main.add("feature", new JsonPrimitive(key.getValue().toString()))
+        ).ifRight(f -> main.add("feature", configuredFeatureJson(f)));
+        JsonArray placements = new JsonArray();
+        feature.placementModifiers().forEach(modifier -> placements.add(placementModifierJson(modifier)));
+        main.add("placement", placements);
+        return main;
     }
 
-    public static JsonObject jsonConfiguredCarver(ConfiguredCarver<?> carver) {
+    public static JsonObject configuredCarverJson(ConfiguredCarver<?> carver) {
         CarverJsonParser parser = CARVER_PARSERS.get(carver.config().getClass());
         JsonObject main = new JsonObject();
         main.add("type", new JsonPrimitive(String.valueOf(Registry.CARVER.getId(carver.carver()))));
@@ -314,29 +347,7 @@ public final class JsonUtils {
         return main;
     }
 
-    public static JsonElement jsonPlacedFeatureRegEntry(RegistryEntry<PlacedFeature> entry) {
-        return entry.getKeyOrValue()
-                .mapLeft(key -> (JsonElement)(new JsonPrimitive(key.getValue().toString())))
-                .mapRight(JsonUtils::jsonPlacedFeature).orThrow();
-    }
-
-    public static JsonElement jsonStructureProcessorListRegEntry(RegistryEntry<StructureProcessorList> entry) {
-        return entry.getKeyOrValue()
-                .mapLeft(k -> (JsonElement)(new JsonPrimitive(k.toString())))
-                .mapRight(l -> {
-                    JsonArray array = new JsonArray();
-                    l.getList().forEach(p -> array.add(JsonUtils.objectJson(p)));
-                    return array;
-                }).orThrow();
-    }
-
-    public static JsonElement jsonConfiguredCarverRegEntry(RegistryEntry<ConfiguredCarver<?>> entry) {
-        return entry.getKeyOrValue()
-                .mapLeft(key -> (JsonElement)(new JsonPrimitive(key.getValue().toString())))
-                .mapRight(JsonUtils::jsonConfiguredCarver).orThrow();
-    }
-
-    public static JsonObject jsonSpawners(SpawnSettings settings) {
+    public static JsonObject spawnersJson(SpawnSettings settings) {
         JsonObject main = new JsonObject();
         for (SpawnGroup group : SpawnGroup.values()) {
             Pool<SpawnSettings.SpawnEntry> pool = settings.getSpawnEntries(group);
@@ -355,7 +366,7 @@ public final class JsonUtils {
         return main;
     }
 
-    public static @NotNull JsonObject jsonSpawnCosts(SpawnSettings settings) {
+    public static @NotNull JsonObject spawnCostsJson(SpawnSettings settings) {
         JsonObject main = new JsonObject();
         //noinspection unchecked
         ((IArrayProvider<EntityType<?>>)settings).dumpster$getArray().forEach(key -> {
@@ -369,10 +380,10 @@ public final class JsonUtils {
         return main;
     }
 
-    public static @NotNull JsonObject jsonBiome(@NotNull Biome biome) {
+    public static @NotNull JsonObject biomeJson(@NotNull Biome biome) {
         JsonObject main = new JsonObject();
         main.add("precipitation", new JsonPrimitive(biome.getPrecipitation().getName()));
-        main.add("temperature", new JsonPrimitive(biome.getTemperature()));
+        main.add(C_TEMP, new JsonPrimitive(biome.getTemperature()));
         main.add("temperature_modifier", new JsonPrimitive(((BiomeWeatherAccessor)((Object)biome)).dumpster$getWeather().temperatureModifier().getName()));
         main.add("downfall", new JsonPrimitive(biome.getDownfall()));
         JsonObject effects = new JsonObject();
@@ -431,8 +442,160 @@ public final class JsonUtils {
         });
         main.add("features", features);
         main.add("creature_spawn_probability", new JsonPrimitive(biome.getSpawnSettings().getCreatureSpawnProbability()));
-        main.add("spawners", jsonSpawners(biome.getSpawnSettings()));
-        main.add("spawn_costs", jsonSpawnCosts(biome.getSpawnSettings()));
+        main.add("spawners", spawnersJson(biome.getSpawnSettings()));
+        main.add("spawn_costs", spawnCostsJson(biome.getSpawnSettings()));
         return main;
+    }
+
+    public static JsonElement parameterRangeJson(MultiNoiseUtil.ParameterRange range) {
+        if (range.min() == range.max()) return new JsonPrimitive(range.min());
+        JsonObject main = new JsonObject();
+        main.add("min", new JsonPrimitive(range.min()));
+        main.add("max", new JsonPrimitive(range.max()));
+        return main;
+    }
+
+    public static JsonObject noiseHyperCubeJson(MultiNoiseUtil.NoiseHypercube noise) {
+        JsonObject main = new JsonObject();
+        main.add(C_TEMP, parameterRangeJson(noise.temperature()));
+        main.add("humidity", parameterRangeJson(noise.humidity()));
+        main.add("continentalness", parameterRangeJson(noise.continentalness()));
+        main.add("erosion", parameterRangeJson(noise.erosion()));
+        main.add("weirdness", parameterRangeJson(noise.weirdness()));
+        main.add("depth", parameterRangeJson(noise.depth()));
+        main.add("offset", new JsonPrimitive(noise.offset()));
+        return main;
+    }
+
+    public static JsonObject densityFunctionJson(DensityFunction function) {
+        Optional<JsonElement> e = DensityFunction.CODEC.encodeStart(JsonOps.INSTANCE, function).result();
+        if (e.isEmpty() || !e.get().isJsonObject()) return unknownJson(function);
+        return e.get().getAsJsonObject();
+    }
+
+    public static JsonObject materialRuleJson(MaterialRules.MaterialRule rule) {
+        Optional<JsonElement> e = MaterialRules.MaterialRule.CODEC.encodeStart(JsonOps.INSTANCE, rule).result();
+        if (e.isEmpty() || !e.get().isJsonObject()) return unknownJson(rule);
+        return e.get().getAsJsonObject();
+    }
+
+    public static JsonObject biomeSourceJson(BiomeSource source) {
+        Optional<JsonElement> e = BiomeSource.CODEC.encodeStart(JsonOps.INSTANCE, source).result();
+        if (e.isEmpty() || ! e.get().isJsonObject()) return unknownJson(source);
+        return e.get().getAsJsonObject();
+    }
+
+    public static JsonObject placementModifierJson(PlacementModifier modifier) {
+        Optional<JsonElement> e = PlacementModifier.CODEC.encodeStart(JsonOps.INSTANCE, modifier).result();
+        if (e.isEmpty() || !e.get().isJsonObject()) return unknownJson(modifier);
+        return e.get().getAsJsonObject();
+    }
+
+    public static JsonObject noiseRouterJson(NoiseRouter router) {
+        JsonObject main = new JsonObject();
+        main.add("initial_density_without_jaggedness", jsonDensityFunctionToReg(router.initialDensityWithoutJaggedness()));
+        main.add("final_density", jsonDensityFunctionToReg(router.finalDensity()));
+        main.add("barrier", jsonDensityFunctionToReg(router.barrierNoise()));
+        main.add("fluid_level_floodedness", jsonDensityFunctionToReg(router.fluidLevelFloodednessNoise()));
+        main.add("fluid_level_spread", jsonDensityFunctionToReg(router.fluidLevelSpreadNoise()));
+        main.add("lava", jsonDensityFunctionToReg(router.lavaNoise()));
+        main.add("vein_toggle", jsonDensityFunctionToReg(router.veinToggle()));
+        main.add("vein_ridged", jsonDensityFunctionToReg(router.veinRidged()));
+        main.add("vein_gap", jsonDensityFunctionToReg(router.veinGap()));
+        main.add(C_TEMP, jsonDensityFunctionToReg(router.temperature()));
+        main.add("vegetation", jsonDensityFunctionToReg(router.vegetation()));
+        main.add("continents", jsonDensityFunctionToReg(router.continents()));
+        main.add("erosion", jsonDensityFunctionToReg(router.erosion()));
+        main.add("depth", jsonDensityFunctionToReg(router.depth()));
+        main.add("ridges", jsonDensityFunctionToReg(router.ridges()));
+        return main;
+    }
+
+    public static JsonObject chunkGeneratorSettingsJson(ChunkGeneratorSettings settings) {
+        JsonObject main = new JsonObject();
+        main.add("sea_level", new JsonPrimitive(settings.seaLevel()));
+        main.add("disable_mob_generation", new JsonPrimitive(settings.mobGenerationDisabled()));
+        main.add("ore_veins_enabled", new JsonPrimitive(settings.oreVeins()));
+        main.add("aquifers_enabled", new JsonPrimitive(settings.aquifers()));
+        main.add("legacy_random_source", new JsonPrimitive(settings.usesLegacyRandom()));
+        main.add("default_block", blockStateJSon(settings.defaultBlock()));
+        main.add("default_fluid", fluidStateJson(settings.defaultFluid().getFluidState()));
+        JsonArray spawnTargets = new JsonArray();
+        settings.spawnTarget().forEach(target -> spawnTargets.add(noiseHyperCubeJson(target)));
+        main.add("spawn_target", spawnTargets);
+        JsonObject noise = new JsonObject();
+        noise.add("min_y", new JsonPrimitive(settings.generationShapeConfig().minimumY()));
+        noise.add("height", new JsonPrimitive(settings.generationShapeConfig().height()));
+        noise.add("size_horizontal", new JsonPrimitive(settings.generationShapeConfig().horizontalSize()));
+        noise.add("size_vertical", new JsonPrimitive(settings.generationShapeConfig().verticalSize()));
+        main.add("noise", noise);
+        main.add("noise_router", noiseRouterJson(settings.noiseRouter()));
+        main.add("surface_rule", materialRuleJson(settings.surfaceRule()));
+        return main;
+    }
+
+    public static JsonElement jsonPlacedFeatureRegEntry(RegistryEntry<PlacedFeature> entry) {
+        return entry.getKeyOrValue()
+                .mapLeft(key -> (JsonElement)(new JsonPrimitive(key.getValue().toString())))
+                .mapRight(JsonUtils::placedFeatureJson).orThrow();
+    }
+
+    public static JsonElement jsonStructureProcessorListRegEntry(RegistryEntry<StructureProcessorList> entry) {
+        return entry.getKeyOrValue()
+                .mapLeft(k -> (JsonElement)(new JsonPrimitive(k.toString())))
+                .mapRight(l -> {
+                    JsonArray array = new JsonArray();
+                    l.getList().forEach(p -> array.add(JsonUtils.objectJson(p)));
+                    return array;
+                }).orThrow();
+    }
+
+    public static JsonElement jsonConfiguredCarverRegEntry(RegistryEntry<ConfiguredCarver<?>> entry) {
+        return entry.getKeyOrValue()
+                .mapLeft(key -> (JsonElement)(new JsonPrimitive(key.getValue().toString())))
+                .mapRight(JsonUtils::configuredCarverJson).orThrow();
+    }
+
+    public static JsonElement jsonBlockRegEntry(RegistryEntry<Block> entry) {
+        return entry.getKeyOrValue()
+                .mapLeft(key -> (JsonElement)(new JsonPrimitive(String.valueOf(key.getValue()))))
+                .mapRight(b -> new JsonPrimitive(String.valueOf(Registry.BLOCK.getId(b))))
+                .orThrow();
+    }
+
+    public static JsonElement jsonDimensionTypeRegEntry(RegistryEntry<DimensionType> entry) {
+        return entry.getKeyOrValue()
+                .mapLeft(key -> (JsonElement)(new JsonPrimitive(String.valueOf(key.getValue()))))
+                .mapRight(JsonUtils::dimensionTypeJson).orThrow();
+    }
+
+    public static JsonElement jsonStructureRegEntry(RegistryEntry<Structure> entry) {
+        return entry.getKeyOrValue()
+                .mapLeft(key -> (JsonElement)(new JsonPrimitive(String.valueOf(key.getValue()))))
+                .mapRight(JsonUtils::structureJson).orThrow();
+    }
+
+    public static JsonElement jsonStructureSetRegEntry(RegistryEntry<StructureSet> entry) {
+        return entry.getKeyOrValue()
+                .mapLeft(key -> (JsonElement)(new JsonPrimitive(String.valueOf(key.getValue()))))
+                .mapRight(JsonUtils::structureSetJson).orThrow();
+    }
+
+    public static JsonElement jsonBiomeRegEntry(RegistryEntry<Biome> entry) {
+        return entry.getKeyOrValue()
+                .mapLeft(key -> (JsonElement)(new JsonPrimitive(String.valueOf(key.getValue()))))
+                .mapRight(JsonUtils::biomeJson).orThrow();
+    }
+
+    public static JsonElement jsonDensityFunctionToReg(DensityFunction function) {
+        Optional<RegistryKey<DensityFunction>> key = BuiltinRegistries.DENSITY_FUNCTION.getKey(function);
+        if (key.isPresent()) return new JsonPrimitive(String.valueOf(key.get().getValue()));
+        return densityFunctionJson(function);
+    }
+
+    public static JsonElement jsonChunkGeneratorSettingsRegEntry(RegistryEntry<ChunkGeneratorSettings> entry) {
+        return entry.getKeyOrValue()
+                .mapLeft(key -> (JsonElement)(new JsonPrimitive(String.valueOf(key.getValue()))))
+                .mapRight(JsonUtils::chunkGeneratorSettingsJson).orThrow();
     }
 }

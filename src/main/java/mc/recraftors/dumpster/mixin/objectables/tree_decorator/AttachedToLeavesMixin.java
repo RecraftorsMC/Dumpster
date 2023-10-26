@@ -1,4 +1,4 @@
-package mc.recraftors.dumpster.mixin.objectables.tree_decorators;
+package mc.recraftors.dumpster.mixin.objectables.tree_decorator;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;

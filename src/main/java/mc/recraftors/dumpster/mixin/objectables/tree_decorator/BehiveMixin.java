@@ -1,17 +1,17 @@
-package mc.recraftors.dumpster.mixin.objectables.tree_decorators;
+package mc.recraftors.dumpster.mixin.objectables.tree_decorator;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import mc.recraftors.dumpster.utils.accessors.IObjectable;
 import net.minecraft.util.registry.Registry;
-import net.minecraft.world.gen.treedecorator.LeavesVineTreeDecorator;
+import net.minecraft.world.gen.treedecorator.BeehiveTreeDecorator;
 import net.minecraft.world.gen.treedecorator.TreeDecoratorType;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-@Mixin(LeavesVineTreeDecorator.class)
-public abstract class LeavesVineMixin implements IObjectable {
+@Mixin(BeehiveTreeDecorator.class)
+public abstract class BehiveMixin implements IObjectable {
     @Shadow protected abstract TreeDecoratorType<?> getType();
 
     @Shadow @Final private float probability;
