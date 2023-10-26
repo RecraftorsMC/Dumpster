@@ -15,6 +15,7 @@ import net.minecraft.server.function.CommandFunction;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.structure.StructureTemplate;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.noise.DoublePerlinNoiseSampler;
 import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
@@ -407,6 +408,26 @@ public final class Utils {
         return Map.of("Flat Level Generator Presets", err);
     }
 
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpNoise(
+            @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
+        BuiltinRegistries.NOISE_PARAMETERS.getEntrySet().forEach(e -> {
+            Identifier id= e.getKey().getValue();
+            DoublePerlinNoiseSampler.NoiseParameters noise = e.getValue();
+            if (noise == null) {
+                err.add(id);
+                i.incrementAndGet();
+                return;
+            }
+            JsonObject o = JsonUtils.noiseJson(noise);
+            if (FileUtils.storeWorldgen(o, id, "noise", now, i)) {
+                err.add(id);
+            }
+        });
+        if (err.isEmpty()) return Map.of();
+        return Map.of("Noise", err);
+    }
+
     private static @NotNull Map<String, Set<Identifier>> dumpWorldgen(
             @NotNull LocalDateTime now, @NotNull AtomicInteger i, @NotNull DumpCall.Worldgen call) {
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
@@ -424,6 +445,9 @@ public final class Utils {
         }
         if (call.flatGeneratorPresets() && ConfigUtils.doDumpWorldgenFlatGeneratorPresets()) {
             errMap.putAll(dumpFlatLevelGeneratorPresets(now, i));
+        }
+        if (call.noise() && ConfigUtils.doDumpWorldgenNoise()) {
+            errMap.putAll(dumpNoise(now, i));
         }
         return errMap;
     }

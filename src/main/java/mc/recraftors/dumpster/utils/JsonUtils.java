@@ -499,6 +499,12 @@ public final class JsonUtils {
         return e.get().getAsJsonObject();
     }
 
+    public static @NotNull JsonObject noiseJson(DoublePerlinNoiseSampler.NoiseParameters noise) {
+        Optional<JsonElement> e = DoublePerlinNoiseSampler.NoiseParameters.CODEC.encodeStart(JsonOps.INSTANCE, noise).result();
+        if (e.isEmpty() || !e.get().isJsonObject()) return unknownJson(noise);
+        return e.get().getAsJsonObject();
+    }
+
     public static @NotNull JsonObject noiseRouterJson(@NotNull NoiseRouter router) {
         JsonObject main = new JsonObject();
         main.add("initial_density_without_jaggedness", jsonDensityFunctionToReg(router.initialDensityWithoutJaggedness()));
