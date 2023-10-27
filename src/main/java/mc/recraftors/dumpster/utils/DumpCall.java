@@ -10,10 +10,10 @@ public record DumpCall(boolean registries, boolean data, @Nullable Data dataO) {
         public static final Data ALL_TRUE = new Data(true, true, true, true ,true, true, true, true, true, Worldgen.ALL_TRUE);
     }
     public record Worldgen(boolean biomes, boolean carvers, boolean features, boolean densityFunctions,
-                           boolean flatGeneratorPresets, boolean noise, boolean placedFeature, boolean processorList,
-                           boolean structure, boolean structureSet, boolean templatePool) {
+                           boolean flatGeneratorPresets, boolean noise, boolean noiseSettings, boolean placedFeature,
+                           boolean processorList, boolean structure, boolean structureSet, boolean templatePool) {
         public static final Worldgen ALL_TRUE = new Worldgen(
                 true, true, true, true,true, true,
-                true, true, true, true, true);
+                true, true, true, true, true, true);
     }
 }

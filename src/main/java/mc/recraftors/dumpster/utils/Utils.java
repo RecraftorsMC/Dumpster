@@ -23,6 +23,7 @@ import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.FlatLevelGeneratorPreset;
 import net.minecraft.world.gen.GeneratorOptions;
 import net.minecraft.world.gen.carver.ConfiguredCarver;
+import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
 import net.minecraft.world.gen.densityfunction.DensityFunction;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
 import org.apache.logging.log4j.LogManager;
@@ -428,6 +429,26 @@ public final class Utils {
         return Map.of("Noise", err);
     }
 
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpNoiseSettings(
+            @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
+        BuiltinRegistries.CHUNK_GENERATOR_SETTINGS.getEntrySet().forEach(e -> {
+            Identifier id = e.getKey().getValue();
+            ChunkGeneratorSettings settings = e.getValue();
+            if (settings == null) {
+                err.add(id);
+                i.incrementAndGet();
+                return;
+            }
+            JsonObject o = JsonUtils.chunkGeneratorSettingsJson(settings);
+            if (FileUtils.storeWorldgen(o, id, "noise_settings", now, i)) {
+                err.add(id);
+            }
+        });
+        if (err.isEmpty()) return Map.of();
+        return Map.of("Noise Settings", err);
+    }
+
     private static @NotNull Map<String, Set<Identifier>> dumpWorldgen(
             @NotNull LocalDateTime now, @NotNull AtomicInteger i, @NotNull DumpCall.Worldgen call) {
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
@@ -448,6 +469,9 @@ public final class Utils {
         }
         if (call.noise() && ConfigUtils.doDumpWorldgenNoise()) {
             errMap.putAll(dumpNoise(now, i));
+        }
+        if (call.noiseSettings() && ConfigUtils.doDumpWorldgenNoiseSettings()) {
+            errMap.putAll(dumpNoiseSettings(now, i));
         }
         return errMap;
     }
