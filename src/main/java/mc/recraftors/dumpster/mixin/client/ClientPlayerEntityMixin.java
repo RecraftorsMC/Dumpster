@@ -9,6 +9,7 @@ import net.minecraft.client.network.ClientCommandSource;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.network.message.ChatMessageSigner;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.text.Texts;
 import net.minecraft.util.Formatting;
@@ -46,9 +47,10 @@ public class ClientPlayerEntityMixin {
         String s1 = i1 == 2 ? "dump-client" : "dump";
         CommandNode<?> node = this.networkHandler.getCommandDispatcher().findNode(List.of(s1));
         try {
-            node = (CommandNode<ClientCommandSource>)(node);
-        } catch (ClassCastException e) {
+            node = (CommandNode<ServerCommandSource>)(node);
             return;
+        } catch (ClassCastException e) {
+            // literally what we want
         }
         ClientCommandSource source = new ClientCommandSource(this.networkHandler, this.client);
         try {
