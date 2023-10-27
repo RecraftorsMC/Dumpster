@@ -323,7 +323,7 @@ public final class JsonUtils {
         return parser == null ? unknownJson(feature) : parser.toJson();
     }
 
-    public static @NotNull JsonElement placedFeatureJson(@NotNull PlacedFeature feature) {
+    public static @NotNull JsonObject placedFeatureJson(@NotNull PlacedFeature feature) {
         JsonObject main = new JsonObject();
         feature.feature().getKeyOrValue().ifLeft(
                 key -> main.add("feature", new JsonPrimitive(key.getValue().toString()))

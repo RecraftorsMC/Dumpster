@@ -26,6 +26,7 @@ import net.minecraft.world.gen.carver.ConfiguredCarver;
 import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
 import net.minecraft.world.gen.densityfunction.DensityFunction;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
+import net.minecraft.world.gen.feature.PlacedFeature;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -449,6 +450,26 @@ public final class Utils {
         return Map.of("Noise Settings", err);
     }
 
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpPlacedFeatures(
+            @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
+        BuiltinRegistries.PLACED_FEATURE.getEntrySet().forEach(e -> {
+            Identifier id = e.getKey().getValue();
+            PlacedFeature feature = e.getValue();
+            if (feature == null) {
+                err.add(id);
+                i.incrementAndGet();
+                return;
+            }
+            JsonObject o = JsonUtils.placedFeatureJson(feature);
+            if (FileUtils.storeWorldgen(o, id, "placed_feature", now, i)) {
+                err.add(id);
+            }
+        });
+        if (err.isEmpty()) return Map.of();
+        return Map.of("Placed Features", err);
+    }
+
     private static @NotNull Map<String, Set<Identifier>> dumpWorldgen(
             @NotNull LocalDateTime now, @NotNull AtomicInteger i, @NotNull DumpCall.Worldgen call) {
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
@@ -472,6 +493,9 @@ public final class Utils {
         }
         if (call.noiseSettings() && ConfigUtils.doDumpWorldgenNoiseSettings()) {
             errMap.putAll(dumpNoiseSettings(now, i));
+        }
+        if (call.placedFeature() && ConfigUtils.doDumpWorldgenPlacedFeatures()) {
+            errMap.putAll(dumpPlacedFeatures(now, i));
         }
         return errMap;
     }
