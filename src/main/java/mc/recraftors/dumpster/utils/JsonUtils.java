@@ -505,6 +505,14 @@ public final class JsonUtils {
         return e.get().getAsJsonObject();
     }
 
+    public static @NotNull JsonObject processorListJson(@NotNull StructureProcessorList processorList) {
+        JsonArray array = new JsonArray();
+        processorList.getList().forEach(e -> array.add(objectJson(e)));
+        JsonObject main = new JsonObject();
+        main.add("processors", array);
+        return main;
+    }
+
     public static @NotNull JsonObject noiseRouterJson(@NotNull NoiseRouter router) {
         JsonObject main = new JsonObject();
         main.add("initial_density_without_jaggedness", jsonDensityFunctionToReg(router.initialDensityWithoutJaggedness()));

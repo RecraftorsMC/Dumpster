@@ -14,6 +14,7 @@ import net.minecraft.recipe.Recipe;
 import net.minecraft.server.function.CommandFunction;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.structure.StructureTemplate;
+import net.minecraft.structure.processor.StructureProcessorList;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.noise.DoublePerlinNoiseSampler;
 import net.minecraft.util.registry.BuiltinRegistries;
@@ -470,6 +471,26 @@ public final class Utils {
         return Map.of("Placed Features", err);
     }
 
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpProcessorLists(
+            @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
+        BuiltinRegistries.STRUCTURE_PROCESSOR_LIST.getEntrySet().forEach(e -> {
+            Identifier id = e.getKey().getValue();
+            StructureProcessorList list = e.getValue();
+            if (list == null) {
+                err.add(id);
+                i.incrementAndGet();
+                return;
+            }
+            JsonObject o = JsonUtils.processorListJson(list);
+            if (FileUtils.storeWorldgen(o, id, "processor_list", now, i)) {
+                err.add(id);
+            }
+        });
+        if (err.isEmpty()) return Map.of();
+        return Map.of("Processor Lists", err);
+    }
+
     private static @NotNull Map<String, Set<Identifier>> dumpWorldgen(
             @NotNull LocalDateTime now, @NotNull AtomicInteger i, @NotNull DumpCall.Worldgen call) {
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
@@ -496,6 +517,9 @@ public final class Utils {
         }
         if (call.placedFeature() && ConfigUtils.doDumpWorldgenPlacedFeatures()) {
             errMap.putAll(dumpPlacedFeatures(now, i));
+        }
+        if (call.processorList() && ConfigUtils.doDumpWorldgenProcessorLists()) {
+            errMap.putAll(dumpProcessorLists(now, i));
         }
         return errMap;
     }

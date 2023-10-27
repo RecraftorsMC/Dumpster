@@ -38,6 +38,7 @@ public final class ConfigUtils {
     private static final String DATA_DUMP_WORLDGEN_NOISE = "dump.data.dumpWorldgen.noise";
     private static final String DATA_DUMP_WORLDGEN_NOISE_SETTINGS = "dump.data.dumpWorldgen.noiseSettings";
     private static final String DATA_DUMP_WORLDGEN_PLACED_FEATURES = "dump.data.dumpWorldgen.placedFeatures";
+    private static final String DATA_DUMP_WORLDGEN_PROCESSOR_LISTS = "dump.data.dumpWorldgen.processorLists";
     private static final String DUMP_MAIN_FOLDER = "dumpFile.mainFolder";
     private static final String DUMP_ORG_DATE = "dumpFile.organizeFolderByDate";
     private static final String DUMP_ORG_TYPE = "dumpFile.organizeFolderByType";
@@ -71,6 +72,7 @@ public final class ConfigUtils {
         defaults.setProperty(DATA_DUMP_WORLDGEN_NOISE, TRUE);
         defaults.setProperty(DATA_DUMP_WORLDGEN_NOISE_SETTINGS, TRUE);
         defaults.setProperty(DATA_DUMP_WORLDGEN_PLACED_FEATURES, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_PROCESSOR_LISTS, TRUE);
         defaults.setProperty(DUMP_MAIN_FOLDER, "dump");
         defaults.setProperty(DUMP_ORG_DATE, FALSE);
         defaults.setProperty(DUMP_ORG_TYPE, TRUE);
@@ -98,6 +100,7 @@ public final class ConfigUtils {
         PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_NOISE, TRUE);
         PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_NOISE_SETTINGS, TRUE);
         PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_PLACED_FEATURES, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_PROCESSOR_LISTS, TRUE);
         PROPERTIES.setProperty(DUMP_MAIN_FOLDER, "dump");
         PROPERTIES.setProperty(DUMP_ORG_DATE, FALSE);
         PROPERTIES.setProperty(DUMP_ORG_TYPE, TRUE);
@@ -191,6 +194,10 @@ public final class ConfigUtils {
 
     public static boolean doDumpWorldgenPlacedFeatures() {
         return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_PLACED_FEATURES));
+    }
+
+    public static boolean doDumpWorldgenProcessorLists() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_PROCESSOR_LISTS));
     }
 
     public static String dumpFileMainFolder() {
