@@ -472,9 +472,13 @@ public final class JsonUtils {
     }
 
     public static JsonObject densityFunctionJson(DensityFunction function) {
-        Optional<JsonElement> e = DensityFunction.CODEC.encodeStart(JsonOps.INSTANCE, function).result();
-        if (e.isEmpty() || !e.get().isJsonObject()) return unknownJson(function);
-        return e.get().getAsJsonObject();
+        try {
+            Optional<JsonElement> e = DensityFunction.CODEC.encodeStart(JsonOps.INSTANCE, function).result();
+            if (e.isEmpty() || !e.get().isJsonObject()) return unknownJson(function);
+            return e.get().getAsJsonObject();
+        } catch (UnsupportedOperationException ex) {
+            return unknownJson(function);
+        }
     }
 
     public static JsonObject materialRuleJson(MaterialRules.MaterialRule rule) {
