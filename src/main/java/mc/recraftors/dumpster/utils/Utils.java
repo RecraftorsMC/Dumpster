@@ -13,6 +13,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.server.function.CommandFunction;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.structure.StructureSet;
 import net.minecraft.structure.StructureTemplate;
 import net.minecraft.structure.processor.StructureProcessorList;
 import net.minecraft.util.Identifier;
@@ -28,6 +29,7 @@ import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
 import net.minecraft.world.gen.densityfunction.DensityFunction;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
 import net.minecraft.world.gen.feature.PlacedFeature;
+import net.minecraft.world.gen.structure.Structure;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -491,6 +493,46 @@ public final class Utils {
         return Map.of("Processor Lists", err);
     }
 
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpStructures(
+            @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
+        BuiltinRegistries.STRUCTURE.getEntrySet().forEach(e -> {
+            Identifier id = e.getKey().getValue();
+            Structure structure = e.getValue();
+            if (structure == null) {
+                err.add(id);
+                i.incrementAndGet();
+                return;
+            }
+            JsonObject o = JsonUtils.structureJson(structure);
+            if (FileUtils.storeWorldgen(o, id, "structure", now, i)) {
+                err.add(id);
+            }
+        });
+        if (err.isEmpty()) return Map.of();
+        return Map.of("Structures", err);
+    }
+
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpStructureSets(
+            @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
+        BuiltinRegistries.STRUCTURE_SET.getEntrySet().forEach(e -> {
+            Identifier id = e.getKey().getValue();
+            StructureSet set = e.getValue();
+            if (set == null) {
+                err.add(id);
+                i.incrementAndGet();
+                return;
+            }
+            JsonObject o = JsonUtils.structureSetJson(set);
+            if (FileUtils.storeWorldgen(o, id, "structure_set", now, i)) {
+                err.add(id);
+            }
+        });
+        if (err.isEmpty()) return Map.of();
+        return Map.of("Structure Sets", err);
+    }
+
     private static @NotNull Map<String, Set<Identifier>> dumpWorldgen(
             @NotNull LocalDateTime now, @NotNull AtomicInteger i, @NotNull DumpCall.Worldgen call) {
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
@@ -520,6 +562,12 @@ public final class Utils {
         }
         if (call.processorList() && ConfigUtils.doDumpWorldgenProcessorLists()) {
             errMap.putAll(dumpProcessorLists(now, i));
+        }
+        if (call.structure() && ConfigUtils.doDumpWorldgenStrucures()) {
+            errMap.putAll(dumpStructures(now, i));
+        }
+        if (call.structureSet() && ConfigUtils.doDumpWorldgenStrucureSets()) {
+            errMap.putAll(dumpStructureSets(now, i));
         }
         return errMap;
     }

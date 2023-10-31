@@ -31,15 +31,17 @@ public final class ServerDumpCommand {
                         .then(literal("tags").executes(c -> dumpData(c, new DumpCall.Data(F, F, F, F, F, F, F, T, F, null))))
                         .then(literal("worldgen")
                                 .executes(c -> dumpData(c, new DumpCall.Data(F, F, F, F, F, F, F, F, T, DumpCall.Worldgen.ALL_TRUE)))
-                                .then(literal("biomes").executes(c -> dumpWorldgen(c, T, F, F, F, F, F, F, F, F)))
-                                .then(literal("configured-carvers").executes(c -> dumpWorldgen(c, F, T, F, F, F, F, F, F, F)))
-                                .then(literal("configured-features").executes(c -> dumpWorldgen(c, F, F, T, F, F, F, F, F, F)))
-                                .then(literal("density-functions").executes(c -> dumpWorldgen(c, F, F, F, T, F, F, F, F, F)))
-                                .then(literal("flat-generator-presets").executes(c -> dumpWorldgen(c, F, F, F, F, T, F, F, F, F)))
-                                .then(literal("noise").executes(c -> dumpWorldgen(c, F, F, F, F, F, T, F, F, F)))
-                                .then(literal("noise-settings").executes(c -> dumpWorldgen(c, F, F, F, F, F, F, T, F, F)))
-                                .then(literal("placed-features").executes(c -> dumpWorldgen(c, F, F, F, F, F, F, F, T, F)))
-                                .then(literal("processor-lists").executes(c -> dumpWorldgen(c, F, F, F, F, F, F, F, F, T)))
+                                .then(literal("biomes").executes(c -> dumpWorldgen(c, T, F, F, F, F, F, F, F, F, F, F)))
+                                .then(literal("configured-carvers").executes(c -> dumpWorldgen(c, F, T, F, F, F, F, F, F, F, F, F)))
+                                .then(literal("configured-features").executes(c -> dumpWorldgen(c, F, F, T, F, F, F, F, F, F, F, F)))
+                                .then(literal("density-functions").executes(c -> dumpWorldgen(c, F, F, F, T, F, F, F, F, F, F, F)))
+                                .then(literal("flat-generator-presets").executes(c -> dumpWorldgen(c, F, F, F, F, T, F, F, F, F, F, F)))
+                                .then(literal("noise").executes(c -> dumpWorldgen(c, F, F, F, F, F, T, F, F, F, F, F)))
+                                .then(literal("noise-settings").executes(c -> dumpWorldgen(c, F, F, F, F, F, F, T, F, F, F, F)))
+                                .then(literal("placed-features").executes(c -> dumpWorldgen(c, F, F, F, F, F, F, F, T, F, F, F)))
+                                .then(literal("processor-lists").executes(c -> dumpWorldgen(c, F, F, F, F, F, F, F, F, T, F, F)))
+                                .then(literal("structures").executes(c -> dumpWorldgen(c, F, F, F, F, F, F, F, F, F, T, F)))
+                                .then(literal("structure-sets").executes(c -> dumpWorldgen(c, F, F, F, F, F, F, F, F, F, F, T)))
                         )
                 )
                 .then(literal("registries")
@@ -70,8 +72,9 @@ public final class ServerDumpCommand {
     }
 
     private static int dumpWorldgen(CommandContext<ServerCommandSource> context, boolean b1, boolean b2,
-                                    boolean b3, boolean b4, boolean b5, boolean b6, boolean b7, boolean b8, boolean b9) {
-        return dumpData(context, new DumpCall.Data(F,F,F,F,F,F,F,F,T, new DumpCall.Worldgen(b1, b2, b3, b4, b5, b6, b7, b8, b9,F,F,F)));
+                                    boolean b3, boolean b4, boolean b5, boolean b6, boolean b7, boolean b8,
+                                    boolean b9, boolean b10, boolean b11) {
+        return dumpData(context, new DumpCall.Data(F,F,F,F,F,F,F,F,T, new DumpCall.Worldgen(b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11,F)));
     }
 
     private static int dumpData(CommandContext<ServerCommandSource> context, DumpCall.Data call) {

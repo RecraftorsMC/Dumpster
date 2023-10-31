@@ -39,6 +39,8 @@ public final class ConfigUtils {
     private static final String DATA_DUMP_WORLDGEN_NOISE_SETTINGS = "dump.data.dumpWorldgen.noiseSettings";
     private static final String DATA_DUMP_WORLDGEN_PLACED_FEATURES = "dump.data.dumpWorldgen.placedFeatures";
     private static final String DATA_DUMP_WORLDGEN_PROCESSOR_LISTS = "dump.data.dumpWorldgen.processorLists";
+    private static final String DATA_DUMP_WORLDGEN_STRUCTURES = "dump.data.dumpWorldgen.structures";
+    private static final String DATA_DUMP_WORLDGEN_STRUCTURE_SETS = "dump.data.dumpWorldgen.structureSets";
     private static final String DUMP_MAIN_FOLDER = "dumpFile.mainFolder";
     private static final String DUMP_ORG_DATE = "dumpFile.organizeFolderByDate";
     private static final String DUMP_ORG_TYPE = "dumpFile.organizeFolderByType";
@@ -73,6 +75,8 @@ public final class ConfigUtils {
         defaults.setProperty(DATA_DUMP_WORLDGEN_NOISE_SETTINGS, TRUE);
         defaults.setProperty(DATA_DUMP_WORLDGEN_PLACED_FEATURES, TRUE);
         defaults.setProperty(DATA_DUMP_WORLDGEN_PROCESSOR_LISTS, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_STRUCTURES, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_STRUCTURE_SETS, TRUE);
         defaults.setProperty(DUMP_MAIN_FOLDER, "dump");
         defaults.setProperty(DUMP_ORG_DATE, FALSE);
         defaults.setProperty(DUMP_ORG_TYPE, TRUE);
@@ -101,6 +105,8 @@ public final class ConfigUtils {
         PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_NOISE_SETTINGS, TRUE);
         PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_PLACED_FEATURES, TRUE);
         PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_PROCESSOR_LISTS, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_STRUCTURES, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_STRUCTURE_SETS, TRUE);
         PROPERTIES.setProperty(DUMP_MAIN_FOLDER, "dump");
         PROPERTIES.setProperty(DUMP_ORG_DATE, FALSE);
         PROPERTIES.setProperty(DUMP_ORG_TYPE, TRUE);
@@ -198,6 +204,14 @@ public final class ConfigUtils {
 
     public static boolean doDumpWorldgenProcessorLists() {
         return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_PROCESSOR_LISTS));
+    }
+
+    public static boolean doDumpWorldgenStrucures() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_STRUCTURES));
+    }
+
+    public static boolean doDumpWorldgenStrucureSets() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_STRUCTURE_SETS));
     }
 
     public static String dumpFileMainFolder() {
