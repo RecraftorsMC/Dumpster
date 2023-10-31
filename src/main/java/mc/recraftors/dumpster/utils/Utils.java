@@ -15,6 +15,7 @@ import net.minecraft.server.function.CommandFunction;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.structure.StructureSet;
 import net.minecraft.structure.StructureTemplate;
+import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.processor.StructureProcessorList;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.noise.DoublePerlinNoiseSampler;
@@ -533,6 +534,26 @@ public final class Utils {
         return Map.of("Structure Sets", err);
     }
 
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpTemplatePools(
+            @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
+        BuiltinRegistries.STRUCTURE_POOL.getEntrySet().forEach(e -> {
+            Identifier id = e.getKey().getValue();
+            StructurePool pool = e.getValue();
+            if (pool == null) {
+                err.add(id);
+                i.incrementAndGet();
+                return;
+            }
+            JsonObject o = JsonUtils.structurePoolJson(pool);
+            if (FileUtils.storeWorldgen(o, id, "template_pool", now, i)) {
+                err.add(id);
+            }
+        });
+        if (err.isEmpty()) return Map.of();
+        return Map.of("Template Pools", err);
+    }
+
     private static @NotNull Map<String, Set<Identifier>> dumpWorldgen(
             @NotNull LocalDateTime now, @NotNull AtomicInteger i, @NotNull DumpCall.Worldgen call) {
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
@@ -568,6 +589,9 @@ public final class Utils {
         }
         if (call.structureSet() && ConfigUtils.doDumpWorldgenStrucureSets()) {
             errMap.putAll(dumpStructureSets(now, i));
+        }
+        if (call.templatePool() && ConfigUtils.doDumpWorldgenTemplatePools()) {
+            errMap.putAll(dumpTemplatePools(now, i));
         }
         return errMap;
     }

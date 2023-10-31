@@ -23,6 +23,7 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.state.State;
 import net.minecraft.state.property.Property;
 import net.minecraft.structure.StructureSet;
+import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.processor.StructureProcessorList;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.Pool;
@@ -490,6 +491,12 @@ public final class JsonUtils {
     public static JsonObject placementModifierJson(PlacementModifier modifier) {
         Optional<JsonElement> e = PlacementModifier.CODEC.encodeStart(JsonOps.INSTANCE, modifier).result();
         if (e.isEmpty() || !e.get().isJsonObject()) return unknownJson(modifier);
+        return e.get().getAsJsonObject();
+    }
+
+    public static JsonObject structurePoolJson(StructurePool pool) {
+        Optional<JsonElement> e = StructurePool.CODEC.encodeStart(JsonOps.INSTANCE, pool).result();
+        if (e.isEmpty() || !e.get().isJsonObject()) return unknownJson(pool);
         return e.get().getAsJsonObject();
     }
 
