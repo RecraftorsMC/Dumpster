@@ -1,0 +1,11 @@
+accessWidener	v1  named
+
+accessible  class   net/minecraft/world/biome/Biome$Weather
+accessible  class   net/minecraft/world/gen/blockpredicate/AllOfBlockPredicate
+accessible  class   net/minecraft/world/gen/blockpredicate/AlwaysTrueBlockPredicate
+accessible  class   net/minecraft/world/gen/blockpredicate/CombinedBlockPredicate
+accessible  class   net/minecraft/world/gen/blockpredicate/HasSturdyFacePredicate
+accessible  class   net/minecraft/world/gen/blockpredicate/MatchingBlocksBlockPredicate
+accessible  class   net/minecraft/world/gen/blockpredicate/MatchingFluidsBlockPredicate
+accessible  class   net/minecraft/world/gen/blockpredicate/NotBlockPredicate
+accessible  class   net/minecraft/world/gen/blockpredicate/ReplaceableBlockPredicate

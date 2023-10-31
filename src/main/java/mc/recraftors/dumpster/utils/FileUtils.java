@@ -1,14 +1,13 @@
 package mc.recraftors.dumpster.utils;
 
 import com.google.gson.*;
-import mc.recraftors.dumpster.recipes.RecipeJsonParser;
+import mc.recraftors.dumpster.parsers.recipes.RecipeJsonParser;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -27,23 +26,23 @@ public final class FileUtils {
         }
     }
 
-    public static String getNow() {
+    public static @NotNull String getNow() {
         return getNow(LocalDateTime.now());
     }
 
-    public static String getNow(LocalDateTime now) {
+    public static @NotNull String getNow(@NotNull LocalDateTime now) {
         return now.format(DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm-ss"));
     }
 
-    public static String singleNameIdPath(Identifier id) {
+    public static @NotNull String singleNameIdPath(@NotNull Identifier id) {
         return id.getNamespace() + "_" + String.join("-", id.getPath().split("/"));
     }
 
-    public static StringBuilder pathBuilder(LocalDateTime now, String target, Identifier type) {
+    public static @NotNull StringBuilder pathBuilder(LocalDateTime now, String target, Identifier type) {
         return pathBuilder(now, target, singleNameIdPath(type));
     }
 
-    public static StringBuilder pathBuilder(LocalDateTime now, String target, String type) {
+    public static @NotNull StringBuilder pathBuilder(LocalDateTime now, String target, String type) {
         StringBuilder builder = new StringBuilder(ConfigUtils.dumpFileMainFolder());
         if (ConfigUtils.doDumpFileOrganizeFolderByDate()) {
             builder.append(File.separator).append(getNow(now));
@@ -72,7 +71,7 @@ public final class FileUtils {
         }
     }
 
-    public static void writeEntries(String folder, Identifier name, Collection<RegistryEntry> entries)
+    public static void writeEntries(String folder, Identifier name, @NotNull Collection<RegistryEntry> entries)
             throws IOException {
         File f = new File(folder);
         Files.createDirectories(f.toPath());
@@ -113,6 +112,14 @@ public final class FileUtils {
         storeRaw(GSON.toJson(e), s);
     }
 
+    static void storeNbt(@NotNull NbtElement e, String s) throws IOException {
+        File f = new File(s);
+        Files.createDirectories(f.getParentFile().toPath());
+        try (DataOutputStream stream = new DataOutputStream(new FileOutputStream(s))) {
+            e.write(stream);
+        }
+    }
+
     static void storeRecipe(JsonObject object, Identifier id, Identifier type, LocalDateTime now, boolean isSpecial, AtomicInteger i) {
         try {
             StringBuilder builder = new StringBuilder(ConfigUtils.dumpFileMainFolder());
@@ -134,7 +141,7 @@ public final class FileUtils {
         }
     }
 
-    static void storeLootTable(JsonObject elem, Identifier id, LocalDateTime now, AtomicInteger i) {
+    static void storeLootTable(JsonObject elem, @NotNull Identifier id, LocalDateTime now, AtomicInteger i) {
         try {
             StringBuilder builder = pathBuilder(now, "loot_tables", id.getNamespace());
             builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
@@ -145,7 +152,7 @@ public final class FileUtils {
         }
     }
 
-    static boolean storeAdvancement(JsonObject o, Identifier id, LocalDateTime now, AtomicInteger i) {
+    static boolean storeAdvancement(JsonObject o, @NotNull Identifier id, LocalDateTime now, AtomicInteger i) {
         try {
             StringBuilder builder = pathBuilder(now, "advancements", id.getNamespace());
             builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
@@ -158,7 +165,20 @@ public final class FileUtils {
         }
     }
 
-    static boolean storeDimension(JsonObject o, Identifier id, LocalDateTime now, AtomicInteger i) {
+    static boolean storeDimension(JsonObject o, @NotNull Identifier id, LocalDateTime now, AtomicInteger i) {
+        try {
+            StringBuilder builder = pathBuilder(now, "dimension", id.getNamespace());
+            builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
+            storeJson(o, builder.toString());
+            return false;
+        } catch (IOException e) {
+            err("dimension", id, e);
+            i.incrementAndGet();
+            return true;
+        }
+    }
+
+    static boolean storeDimensionType(JsonObject o, @NotNull Identifier id, LocalDateTime now, AtomicInteger i) {
         try {
             StringBuilder builder = pathBuilder(now, "dimension_type", id.getNamespace());
             builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
@@ -171,7 +191,7 @@ public final class FileUtils {
         }
     }
 
-    static boolean storeFunction(String f, Identifier id, LocalDateTime now, AtomicInteger i) {
+    static boolean storeFunction(String f, @NotNull Identifier id, LocalDateTime now, AtomicInteger i) {
         try {
             StringBuilder builder = pathBuilder(now, "functions", id.getNamespace());
             builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(".mcfunction");
@@ -184,7 +204,35 @@ public final class FileUtils {
         }
     }
 
-    static void writeErrors(Map<String, Set<Identifier>> setMap) {
+    static boolean storeStructureTemplate(NbtElement nbt, @NotNull Identifier id, LocalDateTime now, AtomicInteger i) {
+        try {
+            StringBuilder builder = pathBuilder(now, "structures", id.getNamespace());
+            builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(".nbt");
+            storeNbt(nbt, builder.toString());
+            return false;
+        } catch (IOException e) {
+            err("structure_template", id, e);
+            i.incrementAndGet();
+            return true;
+        }
+    }
+
+    static boolean storeWorldgen(JsonObject o, Identifier id, String type, LocalDateTime now, AtomicInteger i) {
+        try {
+            StringBuilder builder = pathBuilder(now, "worldgen"+File.separator+type, id);
+            builder.append(File.separator).append(Utils.normalizeIdPath(id)).append(JSON_EXT);
+            storeJson(o, builder.toString());
+            return false;
+        } catch (IOException e) {
+            String t = type.substring(0,1).toUpperCase(Locale.ROOT);
+            if (type.length() > 1) t += type.substring(1).toLowerCase(Locale.ROOT);
+            err(t, id, e);
+            i.incrementAndGet();
+            return true;
+        }
+    }
+
+    static void writeErrors(@NotNull Map<String, Set<Identifier>> setMap) {
         try {
             Path p = Path.of(ConfigUtils.dumpFileMainFolder(), "errors.txt");
             Files.createDirectories(p.getParent());

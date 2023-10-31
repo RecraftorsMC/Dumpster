@@ -26,8 +26,23 @@ public final class ConfigUtils {
     private static final String DATA_DUMP_RECIPES = "dump.data.dumpRecipes";
     private static final String DATA_DUMP_LOOT_TABLES = "dump.data.dumpLootTables";
     private static final String DATA_DUMP_ADVANCEMENTS = "dump.data.dumpAdvancements";
+    private static final String DATA_DUMP_DIMENSIONS = "dump.data.dumpDimensions";
     private static final String DATA_DUMP_DIM_TYPES = "dump.data.dumpDimensionTypes";
     private static final String DATA_DUMP_FUNCTIONS = "dump.data.dumpMcFunctions";
+    private static final String DATA_DUMP_STRUCTURE_TEMPLATES = "dump.data.dumpStructureTemplates";
+    private static final String DATA_DUMP_WORLDGEN_BIOMES = "dump.data.dumpWorldgen.biomes";
+    private static final String DATA_DUMP_WORLDGEN_CARVERS = "dump.data.dumpWorldgen.carvers";
+    private static final String DATA_DUMP_WORLDGEN_CONF_FEATURES = "dump.data.dumpWorldgen.configuredFeatures";
+    private static final String DATA_DUMP_WORLDGEN_DENSITY_FUNCTIONS = "dump.data.dumpWorldgen.densityFunctions";
+    private static final String DATA_DUMP_WORLDGEN_FLAT_PRESETS = "dump.data.dumpWorldgen.flatPresets";
+    private static final String DATA_DUMP_WORLDGEN_NOISE = "dump.data.dumpWorldgen.noise";
+    private static final String DATA_DUMP_WORLDGEN_NOISE_SETTINGS = "dump.data.dumpWorldgen.noiseSettings";
+    private static final String DATA_DUMP_WORLDGEN_PLACED_FEATURES = "dump.data.dumpWorldgen.placedFeatures";
+    private static final String DATA_DUMP_WORLDGEN_PROCESSOR_LISTS = "dump.data.dumpWorldgen.processorLists";
+    private static final String DATA_DUMP_WORLDGEN_STRUCTURES = "dump.data.dumpWorldgen.structures";
+    private static final String DATA_DUMP_WORLDGEN_STRUCTURE_SETS = "dump.data.dumpWorldgen.structureSets";
+    private static final String DATA_DUMP_WORLDGEN_TEMPLATE_POOLS = "dump.data.dumpWorldgen.templatePools";
+    private static final String DATA_DUMP_WORLDGEN_WORLD_PRESETS = "dump.data.dumpWorldgen.worldPresets";
     private static final String DUMP_MAIN_FOLDER = "dumpFile.mainFolder";
     private static final String DUMP_ORG_DATE = "dumpFile.organizeFolderByDate";
     private static final String DUMP_ORG_TYPE = "dumpFile.organizeFolderByType";
@@ -49,8 +64,23 @@ public final class ConfigUtils {
         defaults.setProperty(DATA_DUMP_RECIPES, TRUE);
         defaults.setProperty(DATA_DUMP_LOOT_TABLES, TRUE);
         defaults.setProperty(DATA_DUMP_ADVANCEMENTS, TRUE);
+        defaults.setProperty(DATA_DUMP_DIMENSIONS, TRUE);
         defaults.setProperty(DATA_DUMP_DIM_TYPES, TRUE);
         defaults.setProperty(DATA_DUMP_FUNCTIONS, TRUE);
+        defaults.setProperty(DATA_DUMP_STRUCTURE_TEMPLATES, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_BIOMES, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_CARVERS, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_CONF_FEATURES, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_DENSITY_FUNCTIONS, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_FLAT_PRESETS, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_NOISE, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_NOISE_SETTINGS, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_PLACED_FEATURES, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_PROCESSOR_LISTS, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_STRUCTURES, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_STRUCTURE_SETS, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_TEMPLATE_POOLS, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_WORLD_PRESETS, TRUE);
         defaults.setProperty(DUMP_MAIN_FOLDER, "dump");
         defaults.setProperty(DUMP_ORG_DATE, FALSE);
         defaults.setProperty(DUMP_ORG_TYPE, TRUE);
@@ -66,8 +96,23 @@ public final class ConfigUtils {
         PROPERTIES.setProperty(DATA_DUMP_RECIPES, TRUE);
         PROPERTIES.setProperty(DATA_DUMP_LOOT_TABLES, TRUE);
         PROPERTIES.setProperty(DATA_DUMP_ADVANCEMENTS, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_DIMENSIONS, TRUE);
         PROPERTIES.setProperty(DATA_DUMP_DIM_TYPES, TRUE);
         PROPERTIES.setProperty(DATA_DUMP_FUNCTIONS, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_STRUCTURE_TEMPLATES, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_BIOMES, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_CARVERS, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_CONF_FEATURES, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_DENSITY_FUNCTIONS, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_FLAT_PRESETS, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_NOISE, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_NOISE_SETTINGS, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_PLACED_FEATURES, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_PROCESSOR_LISTS, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_STRUCTURES, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_STRUCTURE_SETS, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_TEMPLATE_POOLS, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_WORLD_PRESETS, TRUE);
         PROPERTIES.setProperty(DUMP_MAIN_FOLDER, "dump");
         PROPERTIES.setProperty(DUMP_ORG_DATE, FALSE);
         PROPERTIES.setProperty(DUMP_ORG_TYPE, TRUE);
@@ -115,12 +160,72 @@ public final class ConfigUtils {
         return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_ADVANCEMENTS));
     }
 
+    public static boolean doDumpDimensions() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_DIMENSIONS));
+    }
+
     public static boolean doDumpDimensionTypes() {
         return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_DIM_TYPES));
     }
 
     public static boolean doDumpFunctions() {
         return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_FUNCTIONS));
+    }
+
+    public static boolean doDumpStructureTemplates() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_STRUCTURE_TEMPLATES));
+    }
+
+    public static boolean doDumpWorldgenBiomes() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_BIOMES));
+    }
+
+    public static boolean doDumpWorldgenCarvers() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_CARVERS));
+    }
+
+    public static boolean doDumpWorldgenConfiguredFeatures() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_CONF_FEATURES));
+    }
+
+    public static boolean doDumpWorldgenDensityFunctions() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_DENSITY_FUNCTIONS));
+    }
+
+    public static boolean doDumpWorldgenFlatGeneratorPresets() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_FLAT_PRESETS));
+    }
+
+    public static boolean doDumpWorldgenNoise() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_NOISE));
+    }
+
+    public static boolean doDumpWorldgenNoiseSettings() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_NOISE_SETTINGS));
+    }
+
+    public static boolean doDumpWorldgenPlacedFeatures() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_PLACED_FEATURES));
+    }
+
+    public static boolean doDumpWorldgenProcessorLists() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_PROCESSOR_LISTS));
+    }
+
+    public static boolean doDumpWorldgenStrucures() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_STRUCTURES));
+    }
+
+    public static boolean doDumpWorldgenStrucureSets() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_STRUCTURE_SETS));
+    }
+
+    public static boolean doDumpWorldgenTemplatePools() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_TEMPLATE_POOLS));
+    }
+
+    public static boolean doDumpWorldgenWorldPresets() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_WORLD_PRESETS));
     }
 
     public static String dumpFileMainFolder() {

@@ -5,6 +5,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.CommandNode;
 import mc.recraftors.dumpster.utils.ConfigUtils;
+import mc.recraftors.dumpster.utils.DumpCall;
 import mc.recraftors.dumpster.utils.FileUtils;
 import mc.recraftors.dumpster.utils.Utils;
 import net.minecraft.client.MinecraftClient;
@@ -15,7 +16,6 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static mc.recraftors.dumpster.client.ClientLiteralArgumentBuilder.literal;
@@ -36,8 +36,7 @@ public final class ClientDumpCommand {
     private static int dumpAll(CommandContext<ClientCommandSource> context) {
         FileUtils.clearIfNeeded();
         World world = MinecraftClient.getInstance().world;
-        LocalDateTime now = LocalDateTime.now();
-        int n = Utils.dumpRegistries(now) + Utils.dumpData(world, now);
+        int n = Utils.dump(world, DumpCall.ALL_TRUE);
         if (n > 0) {
             toastError(n);
         }
@@ -48,8 +47,7 @@ public final class ClientDumpCommand {
         FileUtils.clearIfNeeded();
         RegistryKey<World> key = context.getSource().getWorldKeys().iterator().next();
         World world = (World) Registry.REGISTRIES.get(key.getValue()).iterator().next();
-        LocalDateTime now = LocalDateTime.now();
-        int n = Utils.dumpData(world, now);
+        int n = Utils.dump(world, new DumpCall(false, true, DumpCall.Data.ALL_TRUE));
         if (n > 0) {
             toastError(n);
         }
@@ -58,7 +56,7 @@ public final class ClientDumpCommand {
 
     private static int dumpReg(CommandContext<ClientCommandSource> context) {
         FileUtils.clearIfNeeded();
-        int n = Utils.dumpRegistries(LocalDateTime.now());
+        int n = Utils.dump(null, new DumpCall(true, false, null));
         if (n > 0) {
             toastError(n);
         }
