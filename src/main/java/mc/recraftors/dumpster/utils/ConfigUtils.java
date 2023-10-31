@@ -42,6 +42,7 @@ public final class ConfigUtils {
     private static final String DATA_DUMP_WORLDGEN_STRUCTURES = "dump.data.dumpWorldgen.structures";
     private static final String DATA_DUMP_WORLDGEN_STRUCTURE_SETS = "dump.data.dumpWorldgen.structureSets";
     private static final String DATA_DUMP_WORLDGEN_TEMPLATE_POOLS = "dump.data.dumpWorldgen.templatePools";
+    private static final String DATA_DUMP_WORLDGEN_WORLD_PRESETS = "dump.data.dumpWorldgen.worldPresets";
     private static final String DUMP_MAIN_FOLDER = "dumpFile.mainFolder";
     private static final String DUMP_ORG_DATE = "dumpFile.organizeFolderByDate";
     private static final String DUMP_ORG_TYPE = "dumpFile.organizeFolderByType";
@@ -79,6 +80,7 @@ public final class ConfigUtils {
         defaults.setProperty(DATA_DUMP_WORLDGEN_STRUCTURES, TRUE);
         defaults.setProperty(DATA_DUMP_WORLDGEN_STRUCTURE_SETS, TRUE);
         defaults.setProperty(DATA_DUMP_WORLDGEN_TEMPLATE_POOLS, TRUE);
+        defaults.setProperty(DATA_DUMP_WORLDGEN_WORLD_PRESETS, TRUE);
         defaults.setProperty(DUMP_MAIN_FOLDER, "dump");
         defaults.setProperty(DUMP_ORG_DATE, FALSE);
         defaults.setProperty(DUMP_ORG_TYPE, TRUE);
@@ -110,6 +112,7 @@ public final class ConfigUtils {
         PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_STRUCTURES, TRUE);
         PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_STRUCTURE_SETS, TRUE);
         PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_TEMPLATE_POOLS, TRUE);
+        PROPERTIES.setProperty(DATA_DUMP_WORLDGEN_WORLD_PRESETS, TRUE);
         PROPERTIES.setProperty(DUMP_MAIN_FOLDER, "dump");
         PROPERTIES.setProperty(DUMP_ORG_DATE, FALSE);
         PROPERTIES.setProperty(DUMP_ORG_TYPE, TRUE);
@@ -219,6 +222,10 @@ public final class ConfigUtils {
 
     public static boolean doDumpWorldgenTemplatePools() {
         return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_TEMPLATE_POOLS));
+    }
+
+    public static boolean doDumpWorldgenWorldPresets() {
+        return Boolean.parseBoolean(PROPERTIES.getProperty(DATA_DUMP_WORLDGEN_WORLD_PRESETS));
     }
 
     public static String dumpFileMainFolder() {

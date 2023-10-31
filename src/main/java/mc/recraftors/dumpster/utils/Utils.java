@@ -25,6 +25,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.FlatLevelGeneratorPreset;
 import net.minecraft.world.gen.GeneratorOptions;
+import net.minecraft.world.gen.WorldPreset;
 import net.minecraft.world.gen.carver.ConfiguredCarver;
 import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
 import net.minecraft.world.gen.densityfunction.DensityFunction;
@@ -554,6 +555,26 @@ public final class Utils {
         return Map.of("Template Pools", err);
     }
 
+    private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpWorldPresets(
+            @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
+        Set<Identifier> err = new HashSet<>();
+        BuiltinRegistries.WORLD_PRESET.getEntrySet().forEach(e -> {
+            Identifier id = e.getKey().getValue();
+            WorldPreset preset = e.getValue();
+            if (preset == null) {
+                err.add(id);
+                i.incrementAndGet();
+                return;
+            }
+            JsonObject o = JsonUtils.worldPresetJson(preset);
+            if (FileUtils.storeWorldgen(o, id, "world_preset", now, i)) {
+                err.add(id);
+            }
+        });
+        if (err.isEmpty()) return Map.of();
+        return Map.of("World Presets", err);
+    }
+
     private static @NotNull Map<String, Set<Identifier>> dumpWorldgen(
             @NotNull LocalDateTime now, @NotNull AtomicInteger i, @NotNull DumpCall.Worldgen call) {
         Map<String, Set<Identifier>> errMap = new LinkedHashMap<>();
@@ -592,6 +613,9 @@ public final class Utils {
         }
         if (call.templatePool() && ConfigUtils.doDumpWorldgenTemplatePools()) {
             errMap.putAll(dumpTemplatePools(now, i));
+        }
+        if (call.worldPreset() && ConfigUtils.doDumpWorldgenWorldPresets()) {
+            errMap.putAll(dumpWorldPresets(now, i));
         }
         return errMap;
     }

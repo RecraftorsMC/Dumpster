@@ -42,6 +42,7 @@ import net.minecraft.world.dimension.DimensionOptions;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.gen.FlatLevelGeneratorPreset;
 import net.minecraft.world.gen.GenerationStep;
+import net.minecraft.world.gen.WorldPreset;
 import net.minecraft.world.gen.carver.CarverConfig;
 import net.minecraft.world.gen.carver.ConfiguredCarver;
 import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
@@ -497,6 +498,12 @@ public final class JsonUtils {
     public static JsonObject structurePoolJson(StructurePool pool) {
         Optional<JsonElement> e = StructurePool.CODEC.encodeStart(JsonOps.INSTANCE, pool).result();
         if (e.isEmpty() || !e.get().isJsonObject()) return unknownJson(pool);
+        return e.get().getAsJsonObject();
+    }
+
+    public static JsonObject worldPresetJson(WorldPreset preset) {
+        Optional<JsonElement> e = WorldPreset.CODEC.encodeStart(JsonOps.INSTANCE, preset).result();
+        if (e.isEmpty() || !e.get().isJsonObject()) return unknownJson(preset);
         return e.get().getAsJsonObject();
     }
 
