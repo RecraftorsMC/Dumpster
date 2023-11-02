@@ -243,17 +243,20 @@ public final class JsonUtils {
             Pair<RegistryJsonParser, Set<RegistryJsonParser>> parsers = getRegistryParsers(value);
             RegistryJsonParser parser = parsers.getLeft();
             Set<RegistryJsonParser> addonParsers = parsers.getRight();
-            JsonObject o;
+            JsonObject o = new JsonObject();
+            o.add("id", new JsonPrimitive(id.toString()));
             if (parser == null) {
-                o = new JsonObject();
-                o.add("id", new JsonPrimitive(id.toString()));
                 mergeIn(o, unknownJson(value));
             } else {
-                o = parser.toJson();
+                JsonObject ox = parser.toJson();
+                if (ox == null) return;
+                mergeIn(o, ox);
             }
             addonParsers.forEach(addon -> {
                 if (addon.in(value) != InResult.SUCCESS) return;
-                mergeIn(o, addon.toJson());
+                JsonObject add = addon.toJson();
+                if (add == null) return;
+                mergeIn(o, add);
             });
             out.add(o);
         });
