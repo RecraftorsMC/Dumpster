@@ -192,8 +192,7 @@ public final class JsonUtils {
         return parser;
     }
 
-    private static @Nullable RecipeJsonParser resolveRecipeParser(
-            @NotNull Recipe<?> recipe, @NotNull Identifier id, @NotNull RecipeJsonParser parser) {
+    private static @Nullable RecipeJsonParser resolveRecipeParser(@NotNull Identifier id, @NotNull RecipeJsonParser parser) {
         if (!parser.getClass().isAnnotationPresent(TargetRecipeType.class)) return null;
         TargetRecipeType type = parser.getClass().getAnnotation(TargetRecipeType.class);
         for (String s : type.supports()) {
@@ -212,7 +211,7 @@ public final class JsonUtils {
         RecipeJsonParser parser = RECIPE_PARSERS.get(id);
         if (parser == null) {
             for (RecipeJsonParser p : RECIPE_PARSERS.values()) {
-                parser = resolveRecipeParser(recipe, id, p);
+                parser = resolveRecipeParser(id, p);
                 if (parser != null) {
                     break;
                 }
