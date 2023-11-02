@@ -96,6 +96,9 @@ public final class FileUtils {
 
     public static boolean storeRegistry(Collection<JsonObject> col, Identifier type, LocalDateTime now, AtomicInteger i) {
         StringBuilder builder = pathBuilder(now, "regietries", type);
+        if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
+            builder.append(File.separator).append(type.getNamespace());
+        }
         if (ConfigUtils.doDumpRegistryInSingleFile()) {
             builder.append(JSON_EXT);
             JsonArray arr = new JsonArray();
