@@ -21,6 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 public final class FileUtils {
+    public static final String LL = "%n\t - %-";
+    public static final String LR = "s\t@\t%s";
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final String JSON_EXT = ".json";
 
@@ -312,7 +314,7 @@ public final class FileUtils {
                 min = Math.max(min, c.toString().length());
             }
             for (Map.Entry<Class<?>, RegistryJsonParser> entry : registryParsers.entrySet()) {
-                writer.write(String.format("%n\t - %-"+min+"s\t@\t%s", entry.getKey(), entry.getValue().getClass()));
+                writer.write(String.format(LL+min+LR, entry.getKey(), entry.getValue().getClass()));
             }
             // -- Registry addon parsers
             writer.write(String.format("%n%n\t### Registry addon parsers ###%n"));
@@ -334,7 +336,7 @@ public final class FileUtils {
                 min = Math.max(min, id.toString().length());
             }
             for (Map.Entry<Identifier, RecipeJsonParser> entry : recipeParsers.entrySet()) {
-                writer.write(String.format("%n\t - %-"+min+"s\t@\t%s", entry.getKey(), entry.getValue().getClass()));
+                writer.write(String.format(LL+min+LR, entry.getKey(), entry.getValue().getClass()));
             }
             // -- Carver parsers
             writer.write(String.format("%n%n\t### Carver parsers ###%n"));
@@ -343,7 +345,7 @@ public final class FileUtils {
                 min = Math.max(min, c.toString().length());
             }
             for (Map.Entry<Class<? extends CarverConfig>, CarverJsonParser> entry : carverParsers.entrySet()) {
-                writer.write(String.format("%n\t - %-"+min+"s\t@\t%s", entry.getKey(), entry.getValue().getClass()));
+                writer.write(String.format(LL+min+LR, entry.getKey(), entry.getValue().getClass()));
             }
             // -- Feature parsers
             writer.write(String.format("%n%n\t### Feature parsers ###%n"));
@@ -352,7 +354,7 @@ public final class FileUtils {
                 min = Math.max(min, id.toString().length());
             }
             for (Map.Entry<Identifier, FeatureJsonParser> entry : featureParsers.entrySet()) {
-                writer.write(String.format("%n\t - %-"+min+"s\t@\t%s", entry.getKey(), entry.getValue().getClass()));
+                writer.write(String.format(LL+min+LR, entry.getKey(), entry.getValue().getClass()));
             }
             writer.write("\n\n");
             writer.flush();
