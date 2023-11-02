@@ -2,6 +2,7 @@ package mc.recraftors.dumpster.parsers.recipes;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import mc.recraftors.dumpster.utils.InResult;
 import mc.recraftors.dumpster.utils.Objectable;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.util.Identifier;
@@ -79,21 +80,4 @@ public interface RecipeJsonParser extends Objectable {
         }
     }
 
-    /**
-     * The output options of using the {@link #in} method
-     */
-    enum InResult {
-        /**
-         * When the parser successfully took in the provided recipe
-         */
-        SUCCESS,
-        /**
-         * When the parser failed to take in the provided recipe
-         */
-        FAILURE,
-        /**
-         * When the provided recipe should be ignored (e.g. dynamic recipes based on a single one)
-         */
-        IGNORED
-    }
 }

@@ -1,10 +1,14 @@
 package mc.recraftors.dumpster.utils;
 
 import com.google.gson.*;
+import mc.recraftors.dumpster.parsers.carvers.CarverJsonParser;
+import mc.recraftors.dumpster.parsers.features.FeatureJsonParser;
 import mc.recraftors.dumpster.parsers.recipes.RecipeJsonParser;
+import mc.recraftors.dumpster.parsers.registries.RegistryJsonParser;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.world.gen.carver.CarverConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -71,6 +75,7 @@ public final class FileUtils {
         }
     }
 
+    @Deprecated
     public static void writeEntries(String folder, Identifier name, @NotNull Collection<RegistryEntry> entries)
             throws IOException {
         File f = new File(folder);
@@ -87,6 +92,35 @@ public final class FileUtils {
         writer.write(GSON.toJson(object));
         writer.flush();
         writer.close();
+    }
+
+    public static boolean storeRegistry(Collection<JsonObject> col, Identifier type, LocalDateTime now, AtomicInteger i) {
+        StringBuilder builder = pathBuilder(now, "regietries", type);
+        if (ConfigUtils.doDumpRegistryInSingleFile()) {
+            builder.append(JSON_EXT);
+            JsonArray arr = new JsonArray();
+            col.forEach(arr::add);
+            JsonObject o = new JsonObject();
+            o.add("size", new JsonPrimitive(col.size()));
+            o.add("values",arr);
+            try {
+                storeJson(o, builder.toString());
+            } catch (IOException e) {
+                return true;
+            }
+        } else {
+            for (JsonObject o : col) {
+                StringBuilder b = new StringBuilder(builder.toString());
+                Identifier c = Optional.ofNullable(Identifier.tryParse(o.get("id").getAsString())).orElse(new Identifier(String.valueOf(o.hashCode())));
+                b.append(File.separator).append(c).append(JSON_EXT);
+                try {
+                    storeJson(o, b.toString());
+                } catch (IOException e) {
+                    i.incrementAndGet();
+                }
+            }
+        }
+        return false;
     }
 
     static void storeTag(Collection<RegistryEntry> entries, Identifier id, Identifier name, LocalDateTime now, AtomicInteger i) {
@@ -252,22 +286,68 @@ public final class FileUtils {
         }
     }
 
-    static void writeDebug(@NotNull Collection<Registry<?>> registries, Map<Identifier, RecipeJsonParser> recipeParsers) {
+    static void writeDebug(@NotNull Collection<Registry<?>> registries, Map<Class<?>, RegistryJsonParser> registryParsers,
+                           Map<Class<?>, Collection<RegistryJsonParser>> addonRegParsers,
+                           Map<Identifier, RecipeJsonParser> recipeParsers,
+                           Map<Class<? extends CarverConfig>, CarverJsonParser> carverParsers,
+                           Map<Identifier, FeatureJsonParser> featureParsers) {
         try {
             Path p = Path.of(ConfigUtils.dumpFileMainFolder(), "debug.txt");
             Files.createDirectories(p.getParent());
             FileWriter writer = new FileWriter(p.toFile(), true);
             writer.write(String.format(" ======\tDebug report %s\t======%n", getNow()));
+            // Registries
             writer.write(String.format("%n\t### Registries ###%n"));
             for (Registry<?> reg : registries.stream().sorted(Comparator.comparing(e -> e.getKey().getValue())).toList()) {
                 writer.write(String.format("%n\t - %s", reg.getKey().getValue()));
             }
-            writer.write(String.format("%n%n\t### Recipe parsers ###%n"));
+            // Parsers
+            // -- Registry parsers
+            writer.write(String.format("%n%n\t### Registry parsers ###%n"));
             int min = 0;
+            for (Class<?> c : registryParsers.keySet()) {
+                min = Math.max(min, c.toString().length());
+            }
+            for (Map.Entry<Class<?>, RegistryJsonParser> entry : registryParsers.entrySet()) {
+                writer.write(String.format("%n\t - %-"+min+"s\t@\t%s", entry.getKey(), entry.getValue().getClass()));
+            }
+            // -- Registry addon parsers
+            writer.write(String.format("%n%n\t### Registry addon parsers ###%n"));
+            for (Map.Entry<Class<?>, Collection<RegistryJsonParser>> entry : addonRegParsers.entrySet()) {
+                writer.write(String.format("%n\t\t###### %s ###%n", entry.getKey()));
+                min = 0;
+                for (RegistryJsonParser parser : entry.getValue()) {
+                    min = Math.max(min, parser.getClass().toString().length());
+                }
+                for (RegistryJsonParser parser : entry.getValue()) {
+                    writer.write(String.format("%n\t\t - %-"+min+"s", parser.getClass()));
+                }
+            }
+            // -- Recipe parsers
+            writer.write(String.format("%n%n\t### Recipe parsers ###%n"));
+            min = 0;
             for (Identifier id : recipeParsers.keySet()) {
                 min = Math.max(min, id.toString().length());
             }
             for (Map.Entry<Identifier, RecipeJsonParser> entry : recipeParsers.entrySet()) {
+                writer.write(String.format("%n\t - %-"+min+"s\t@\t%s", entry.getKey(), entry.getValue().getClass()));
+            }
+            // -- Carver parsers
+            writer.write(String.format("%n%n\t### Carver parsers ###%n"));
+            min = 0;
+            for (Class<?> c : carverParsers.keySet()) {
+                min = Math.max(min, c.toString().length());
+            }
+            for (Map.Entry<Class<? extends CarverConfig>, CarverJsonParser> entry : carverParsers.entrySet()) {
+                writer.write(String.format("%n\t - %-"+min+"s\t@\t%s", entry.getKey(), entry.getValue().getClass()));
+            }
+            // -- Feature parsers
+            writer.write(String.format("%n%n\t### Feature parsers ###%n"));
+            min = 0;
+            for (Identifier id : featureParsers.keySet()) {
+                min = Math.max(min, id.toString().length());
+            }
+            for (Map.Entry<Identifier, FeatureJsonParser> entry : featureParsers.entrySet()) {
                 writer.write(String.format("%n\t - %-"+min+"s\t@\t%s", entry.getKey(), entry.getValue().getClass()));
             }
             writer.write("\n");

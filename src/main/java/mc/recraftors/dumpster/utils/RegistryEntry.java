@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import net.minecraft.util.Identifier;
 
+@Deprecated(since = "1.1")
 public record RegistryEntry(Identifier id, Class<?> clazz, String s) implements Objectable {
     @Override
     public JsonObject toJson() {

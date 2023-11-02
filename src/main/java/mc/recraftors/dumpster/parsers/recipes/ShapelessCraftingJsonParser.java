@@ -3,6 +3,7 @@ package mc.recraftors.dumpster.parsers.recipes;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import mc.recraftors.dumpster.utils.InResult;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.ShapelessRecipe;
 import net.minecraft.util.registry.Registry;

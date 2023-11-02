@@ -2,6 +2,7 @@ package mc.recraftors.dumpster.parsers.recipes;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import mc.recraftors.dumpster.utils.InResult;
 import mc.recraftors.dumpster.utils.accessors.SmithingRecipeParamsAccessor;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.SmithingRecipe;

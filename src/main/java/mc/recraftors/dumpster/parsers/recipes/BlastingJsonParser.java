@@ -1,5 +1,6 @@
 package mc.recraftors.dumpster.parsers.recipes;
 
+import mc.recraftors.dumpster.utils.InResult;
 import net.minecraft.recipe.BlastingRecipe;
 import net.minecraft.recipe.Recipe;
 

@@ -2,15 +2,11 @@ package mc.recraftors.dumpster.utils;
 
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
-import mc.recraftors.dumpster.parsers.recipes.RecipeJsonParser;
-import mc.recraftors.dumpster.parsers.recipes.TargetRecipeType;
 import mc.recraftors.dumpster.utils.accessors.IObjectProvider;
 import mc.recraftors.dumpster.utils.accessors.IStringable;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.loot.LootManager;
 import net.minecraft.loot.LootTable;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.recipe.Recipe;
 import net.minecraft.server.function.CommandFunction;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.structure.StructureSet;
@@ -39,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -54,27 +49,6 @@ public final class Utils {
 
     public static final Lock lock = new ReentrantLock();
     private static final Collection<Registry<?>> REGISTRIES = new LinkedHashSet<>();
-    private static final Map<Identifier, RecipeJsonParser> RECIPE_PARSERS;
-
-    static {
-        Map<Identifier, RecipeJsonParser> recipeParserMap = new HashMap<>();
-        FabricLoader.getInstance().getEntrypoints("recipe-dump", RecipeJsonParser.class).forEach(e -> {
-            if (!e.getClass().isAnnotationPresent(TargetRecipeType.class)) return;
-            TargetRecipeType type = e.getClass().getAnnotation(TargetRecipeType.class);
-            Identifier id = Identifier.tryParse(type.value());
-            if (id == null) return;
-            if (recipeParserMap.containsKey(id)) {
-                RecipeJsonParser o = recipeParserMap.get(id);
-                if (!o.getClass().isAnnotationPresent(TargetRecipeType.class) ||
-                        o.getClass().getAnnotation(TargetRecipeType.class).priority() < type.priority()){
-                    recipeParserMap.put(id, e);
-                }
-            } else {
-                recipeParserMap.put(id, e);
-            }
-        });
-        RECIPE_PARSERS = recipeParserMap;
-    }
 
     public static void reg(Registry<?> reg) {
         if (reg == null) {
@@ -87,27 +61,10 @@ public final class Utils {
         AtomicInteger i = new AtomicInteger();
         Set<Identifier> err = new HashSet<>();
         for (Registry<?> reg : REGISTRIES) {
-            Collection<RegistryEntry> entries = new ArrayList<>();
-            reg.getEntrySet().forEach(entry -> {
-                Identifier id = entry.getKey().getValue();
-                Class<?> tClass = entry.getValue().getClass();
-                String s = entry.getKey().toString();
-                RegistryEntry r = new RegistryEntry(id, tClass, s);
-                entries.add(r);
-            });
-            try {
-                String folder = ConfigUtils.dumpFileMainFolder();
-                if (ConfigUtils.doDumpFileOrganizeFolderByDate()) {
-                    folder += File.separator + FileUtils.getNow(now);
-                }
-                folder += File.separator + "registries";
-                if (ConfigUtils.doDumpFileOrganizeFolderByType()) {
-                    folder += File.separator + normalizeIdPath(reg.getKey().getValue());
-                }
-                FileUtils.writeEntries(folder, reg.getKey().getValue(), entries);
-            } catch (IOException e) {
-                err.add(reg.getKey().getValue());
-                LOGGER.error("An error occurred trying to dump registry {}", reg.getKey().getValue(), e);
+            Collection<JsonObject> col = JsonUtils.registryJson(reg);
+            Identifier type = reg.getKey().getValue();
+            if (FileUtils.storeRegistry(col, type, now, i)) {
+                err.add(type);
                 i.incrementAndGet();
             }
         }
@@ -142,68 +99,18 @@ public final class Utils {
         return Map.of("Tags", err);
     }
 
-    private static @Nullable RecipeJsonParser resolveRecipeParser(
-            @NotNull Recipe<?> recipe, @NotNull Identifier id, @NotNull RecipeJsonParser parser) {
-        if (!parser.getClass().isAnnotationPresent(TargetRecipeType.class)) return null;
-        TargetRecipeType type = parser.getClass().getAnnotation(TargetRecipeType.class);
-        for (String s : type.supports()) {
-            if (id.equals(Identifier.tryParse(s)) && parser.in(recipe) == RecipeJsonParser.InResult.SUCCESS) {
-                return parser;
-            }
-        }
-        return null;
-    }
-
-    private static @Nullable RecipeJsonParser getRecipeParser(@NotNull Recipe<?> recipe) {
-        Identifier id = Registry.RECIPE_TYPE.getId(recipe.getType());
-        if (id == null) {
-            return null;
-        }
-        RecipeJsonParser parser = RECIPE_PARSERS.get(id);
-        if (parser == null) {
-            for (RecipeJsonParser p : RECIPE_PARSERS.values()) {
-                parser = resolveRecipeParser(recipe, id, p);
-                if (parser != null) {
-                    break;
-                }
-            }
-        }
-        return parser;
-    }
-
-    private static int processRecipe(Recipe<?> recipe, RecipeJsonParser parser, LocalDateTime now, AtomicInteger i) {
-        if (parser == null) return 1;
-        try {
-          RecipeJsonParser.InResult result = parser.in(recipe);
-          if (result == RecipeJsonParser.InResult.FAILURE) return 2;
-          if (result == RecipeJsonParser.InResult.IGNORED) return -1;
-          JsonObject o = parser.toJson();
-          if (o == null) return 2;
-          // noinspection OptionalGetWithoutIsPresent
-          Identifier type = RECIPE_PARSERS.keySet().stream().filter(k -> RECIPE_PARSERS.get(k).equals(parser)).findFirst().get();
-          Identifier id = Optional.ofNullable(parser.alternativeId()).orElse(recipe.getId());
-          FileUtils.storeRecipe(o, id, type, now, parser.isSpecial(), i);
-        } catch (Exception e) {
-            if (ConfigUtils.doErrorPrintStacktrace()) {
-                LOGGER.error("An error occurred while trying to dump recipe {}", recipe.getId(), e);
-            }
-            return 2;
-        }
-        return 0;
-    }
-
     private static @NotNull @Unmodifiable Map<String, Set<Identifier>> dumpRecipes(
             @NotNull World world, @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
         Set<Identifier> nonParsableTypes = new HashSet<>();
         Set<Identifier> erroredRecipes = new HashSet<>();
         world.getRecipeManager().values().forEach(recipe -> {
-            Identifier id = Registry.RECIPE_TYPE.getId(recipe.getType());
-            RecipeJsonParser parser = getRecipeParser(recipe);
-            int r = processRecipe(recipe, parser, now, i);
-            if (r == 2) erroredRecipes.add(recipe.getId());
-            else if (r == 1) nonParsableTypes.add(id);
+            InResult.Result<JsonObject> result = JsonUtils.recipeJson(recipe);
+            if (result.result() == InResult.FAILURE) erroredRecipes.add(recipe.getId());
+            if (result.result() == InResult.IGNORED) nonParsableTypes.add(result.type());
+            if (result.result() != null) {
+                FileUtils.storeRecipe(result.value(), result.id(), result.type(), now, result.isSpecial(), i);
+            }
         });
-        RECIPE_PARSERS.values().forEach(RecipeJsonParser::cycle);
         nonParsableTypes.forEach(e -> LOGGER.error("Unable to parse recipes of type {}", e));
         i.addAndGet(erroredRecipes.size() + nonParsableTypes.size());
         Map<String, Set<Identifier>> out = new HashMap<>();
@@ -235,7 +142,7 @@ public final class Utils {
             @NotNull ServerWorld world, @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
         Set<Identifier> err = new HashSet<>();
         world.getServer().getAdvancementLoader().getAdvancements().forEach(adv -> {
-            JsonObject o = JsonUtils.advancementToJson(adv);
+            JsonObject o = JsonUtils.advancementJson(adv);
             if (FileUtils.storeAdvancement(o, adv.getId(), now, i)) {
                 err.add(adv.getId());
             }
@@ -680,7 +587,7 @@ public final class Utils {
 
     public static void debug() {
         if (!ConfigUtils.isDebugEnabled()) return;
-        FileUtils.writeDebug(REGISTRIES, RECIPE_PARSERS);
+        JsonUtils.debug(REGISTRIES);
     }
 
     public static String normalizeId(Identifier id) {

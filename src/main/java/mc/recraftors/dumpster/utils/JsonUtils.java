@@ -2,6 +2,10 @@ package mc.recraftors.dumpster.utils;
 
 import com.google.gson.*;
 import com.mojang.serialization.JsonOps;
+import mc.recraftors.dumpster.parsers.recipes.RecipeJsonParser;
+import mc.recraftors.dumpster.parsers.recipes.TargetRecipeType;
+import mc.recraftors.dumpster.parsers.registries.RegistryJsonParser;
+import mc.recraftors.dumpster.parsers.registries.TargetRegistryType;
 import mc.recraftors.dumpster.utils.accessors.BiomeWeatherAccessor;
 import mc.recraftors.dumpster.utils.accessors.IArrayProvider;
 import mc.recraftors.dumpster.utils.accessors.IBooleanProvider;
@@ -19,6 +23,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.nbt.*;
+import net.minecraft.recipe.Recipe;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.state.State;
 import net.minecraft.state.property.Property;
@@ -26,6 +31,7 @@ import net.minecraft.structure.StructureSet;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.processor.StructureProcessorList;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Pair;
 import net.minecraft.util.collection.Pool;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
@@ -53,8 +59,10 @@ import net.minecraft.world.gen.noise.NoiseRouter;
 import net.minecraft.world.gen.placementmodifier.PlacementModifier;
 import net.minecraft.world.gen.structure.Structure;
 import net.minecraft.world.gen.surfacebuilder.MaterialRules;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
 
@@ -63,6 +71,9 @@ public final class JsonUtils {
     public static final String C_SOUND = "sound";
     private static final String C_TEMP = "temperature";
 
+    private static final Map<Class<?>, RegistryJsonParser> REGISTRY_PARSERS;
+    private static final Map<Class<?>, Collection<RegistryJsonParser>> REGISTRY_ADDON_PARSERS;
+    private static final Map<Identifier, RecipeJsonParser> RECIPE_PARSERS;
     private static final Map<Class<? extends CarverConfig>,CarverJsonParser> CARVER_PARSERS;
     private static final Map<Identifier, FeatureJsonParser> FEATURE_PARSERS;
 
@@ -101,6 +112,45 @@ public final class JsonUtils {
             }
         });
         FEATURE_PARSERS = featureMap;
+        Map<Class<?>, RegistryJsonParser> registryParserMap = new HashMap<>();
+        Map<Class<?>, Collection<RegistryJsonParser>> registryAddonParserMap = new LinkedHashMap<>();
+        FabricLoader.getInstance().getEntrypoints("registry-dump", RegistryJsonParser.class).forEach(e -> {
+            if (!e.getClass().isAnnotationPresent(TargetRegistryType.class)) return;
+            TargetRegistryType type = e.getClass().getAnnotation(TargetRegistryType.class);
+            Class<?> target = type.value();
+            if (target == null) return;
+            if (!registryAddonParserMap.containsKey(target)) {
+                registryAddonParserMap.put(target, new HashSet<>());
+            }
+            if (type.addon()) {
+                registryAddonParserMap.get(target).add(e);
+            } else {
+                RegistryJsonParser o = registryParserMap.get(target);
+                if (o == null || !o.getClass().isAnnotationPresent(TargetRegistryType.class) ||
+                        o.getClass().getAnnotation(TargetRegistryType.class).priority() < type.priority()) {
+                    registryParserMap.put(target, e);
+                }
+            }
+        });
+        REGISTRY_PARSERS = registryParserMap;
+        REGISTRY_ADDON_PARSERS = registryAddonParserMap;
+        Map<Identifier, RecipeJsonParser> recipeParserMap = new HashMap<>();
+        FabricLoader.getInstance().getEntrypoints("recipe-dump", RecipeJsonParser.class).forEach(e -> {
+            if (!e.getClass().isAnnotationPresent(TargetRecipeType.class)) return;
+            TargetRecipeType type = e.getClass().getAnnotation(TargetRecipeType.class);
+            Identifier id = Identifier.tryParse(type.value());
+            if (id == null) return;
+            if (recipeParserMap.containsKey(id)) {
+                RecipeJsonParser o = recipeParserMap.get(id);
+                if (!o.getClass().isAnnotationPresent(TargetRecipeType.class) ||
+                        o.getClass().getAnnotation(TargetRecipeType.class).priority() < type.priority()){
+                    recipeParserMap.put(id, e);
+                }
+            } else {
+                recipeParserMap.put(id, e);
+            }
+        });
+        RECIPE_PARSERS = recipeParserMap;
     }
 
     static @Nullable FeatureJsonParser resolveFeatureParser(ConfiguredFeature<?,?> feature, Identifier id, @NotNull FeatureJsonParser parser) {
@@ -114,6 +164,21 @@ public final class JsonUtils {
         return null;
     }
 
+    @Contract("_ -> new")
+    private static @NotNull Pair<RegistryJsonParser, Set<RegistryJsonParser>> getRegistryParsers(@NotNull Object o) {
+        Class<?> type = o.getClass();
+        RegistryJsonParser parser = REGISTRY_PARSERS.get(type);
+        Set<RegistryJsonParser> addons = new HashSet<>();
+        while (parser == null) {
+            if (type == Object.class) break;
+            type = type.getSuperclass();
+            parser = REGISTRY_PARSERS.get(type);
+            if (parser.in(o) != InResult.SUCCESS) parser = null;
+            addons.addAll(REGISTRY_ADDON_PARSERS.getOrDefault(type, new ArrayList<>()));
+        }
+        return new Pair<>(parser, addons);
+    }
+
     static @Nullable FeatureJsonParser getFeatureParser(ConfiguredFeature<?,?> feature) {
         Identifier id = BuiltinRegistries.CONFIGURED_FEATURE.getId(feature);
         if (id == null) return null;
@@ -125,6 +190,94 @@ public final class JsonUtils {
             }
         }
         return parser;
+    }
+
+    private static @Nullable RecipeJsonParser resolveRecipeParser(
+            @NotNull Recipe<?> recipe, @NotNull Identifier id, @NotNull RecipeJsonParser parser) {
+        if (!parser.getClass().isAnnotationPresent(TargetRecipeType.class)) return null;
+        TargetRecipeType type = parser.getClass().getAnnotation(TargetRecipeType.class);
+        for (String s : type.supports()) {
+            if (id.equals(Identifier.tryParse(s))) {
+                return parser;
+            }
+        }
+        return null;
+    }
+
+    private static @Nullable RecipeJsonParser getRecipeParser(@NotNull Recipe<?> recipe) {
+        Identifier id = Registry.RECIPE_TYPE.getId(recipe.getType());
+        if (id == null) {
+            return null;
+        }
+        RecipeJsonParser parser = RECIPE_PARSERS.get(id);
+        if (parser == null) {
+            for (RecipeJsonParser p : RECIPE_PARSERS.values()) {
+                parser = resolveRecipeParser(recipe, id, p);
+                if (parser != null) {
+                    break;
+                }
+            }
+        }
+        return parser;
+    }
+
+    public static void mergeIn(@NotNull JsonObject object, @NotNull JsonObject add) {
+        add.keySet().forEach(k -> {
+            if (object.has(k)) {
+                if ((object.get(k).isJsonObject() && add.get(k).isJsonObject())) {
+                    mergeIn(object.getAsJsonObject(k), add.getAsJsonObject(k));
+                } else if (object.get(k).isJsonArray() && add.get(k).isJsonArray()) {
+                    object.getAsJsonArray(k).addAll(add.getAsJsonArray(k));
+                }
+            } else {
+                object.add(k, add.get(k));
+            }
+        });
+    }
+
+    public static @NotNull @Unmodifiable Collection<JsonObject> registryJson(@NotNull Registry<?> registry) {
+        Set<JsonObject> out = new HashSet<>();
+        registry.getEntrySet().forEach(entry -> {
+            Identifier id = entry.getKey().getValue();
+            Object value = entry.getValue();
+            Pair<RegistryJsonParser, Set<RegistryJsonParser>> parsers = getRegistryParsers(value);
+            RegistryJsonParser parser = parsers.getLeft();
+            Set<RegistryJsonParser> addonParsers = parsers.getRight();
+            JsonObject o;
+            if (parser == null) {
+                o = new JsonObject();
+                o.add("id", new JsonPrimitive(id.toString()));
+                mergeIn(o, unknownJson(value));
+            } else {
+                o = parser.toJson();
+            }
+            addonParsers.forEach(addon -> {
+                if (addon.in(value) != InResult.SUCCESS) return;
+                mergeIn(o, addon.toJson());
+            });
+            out.add(o);
+        });
+        return Set.copyOf(out);
+    }
+
+    @Contract("_ -> new")
+    public static @NotNull InResult.Result<JsonObject> recipeJson(Recipe<?> recipe) {
+        RecipeJsonParser parser = getRecipeParser(recipe);
+        if (parser == null) {
+            return new InResult.Result<>(InResult.IGNORED, null, null, null, false);
+        }
+        InResult result = parser.in(recipe);
+        if (result == InResult.FAILURE) return new InResult.Result<>(InResult.FAILURE, null, null, null, false);
+        if (result == InResult.IGNORED) return new InResult.Result<>(null, null, null, null, false);
+        JsonObject o = parser.toJson();
+        Identifier id = Optional.ofNullable(parser.alternativeId()).orElse(recipe.getId());
+        // noinspection OptionalGetWithoutIsPresent
+        Identifier type = RECIPE_PARSERS.keySet().stream().filter(k -> RECIPE_PARSERS.get(k).equals(parser)).findFirst().get();
+        return new InResult.Result<>(InResult.SUCCESS, id, type, o, parser.isSpecial());
+    }
+
+    static void cycleRecipeParsers() {
+        RECIPE_PARSERS.values().forEach(RecipeJsonParser::cycle);
     }
 
     /**
@@ -162,15 +315,6 @@ public final class JsonUtils {
 
     public static @NotNull JsonArray jsonBlockPos(@NotNull BlockPos pos) {
         return vec3iJson(new Vec3i(pos.getX(), pos.getY(), pos.getZ()));
-    }
-
-    public static @NotNull JsonObject jsonNoise(@NotNull DoublePerlinNoiseSampler.NoiseParameters noise) {
-        JsonObject o = new JsonObject();
-        o.add("firstOctave", new JsonPrimitive(noise.firstOctave()));
-        JsonArray a = new JsonArray();
-        noise.amplitudes().forEach(a::add);
-        o.add("amplitudes", a);
-        return o;
     }
 
     /**
@@ -237,7 +381,7 @@ public final class JsonUtils {
         return main;
     }
 
-    public static @NotNull JsonObject advancementToJson(@NotNull Advancement adv) {
+    public static @NotNull JsonObject advancementJson(@NotNull Advancement adv) {
         JsonObject main = new JsonObject();
         if (adv.getParent() != null) {
             main.add("parent", new JsonPrimitive(adv.getParent().getId().toString()));
@@ -287,6 +431,7 @@ public final class JsonUtils {
         main.add("generator", objectJson(dimension.getChunkGenerator()));
         return main;
     }
+
 
     public static @NotNull JsonObject dimensionTypeJson(@NotNull DimensionType dim) {
         JsonObject main = new JsonObject();
@@ -637,5 +782,11 @@ public final class JsonUtils {
         return entry.getKeyOrValue()
                 .mapLeft(key -> (JsonElement)(new JsonPrimitive(String.valueOf(key.getValue()))))
                 .mapRight(JsonUtils::chunkGeneratorSettingsJson).orThrow();
+    }
+
+    static void debug(Collection<Registry<?>> registries) {
+        if (!ConfigUtils.isDebugEnabled()) return;
+        FileUtils.writeDebug(registries, REGISTRY_PARSERS, REGISTRY_ADDON_PARSERS,
+                RECIPE_PARSERS,CARVER_PARSERS, FEATURE_PARSERS);
     }
 }
