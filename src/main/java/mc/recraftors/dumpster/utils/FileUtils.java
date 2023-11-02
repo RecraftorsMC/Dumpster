@@ -317,6 +317,7 @@ public final class FileUtils {
             // -- Registry addon parsers
             writer.write(String.format("%n%n\t### Registry addon parsers ###%n"));
             for (Map.Entry<Class<?>, Collection<RegistryJsonParser>> entry : addonRegParsers.entrySet()) {
+                if (entry.getValue().isEmpty()) continue;
                 writer.write(String.format("%n\t\t###### %s ###%n", entry.getKey()));
                 min = 0;
                 for (RegistryJsonParser parser : entry.getValue()) {
@@ -353,7 +354,7 @@ public final class FileUtils {
             for (Map.Entry<Identifier, FeatureJsonParser> entry : featureParsers.entrySet()) {
                 writer.write(String.format("%n\t - %-"+min+"s\t@\t%s", entry.getKey(), entry.getValue().getClass()));
             }
-            writer.write("\n");
+            writer.write("\n\n");
             writer.flush();
             writer.close();
         } catch (IOException e) {
