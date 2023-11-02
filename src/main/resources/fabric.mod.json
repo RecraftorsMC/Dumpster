@@ -53,7 +53,8 @@
       "mc.recraftors.dumpster.parsers.registries.ActivityJsonParser",
       "mc.recraftors.dumpster.parsers.registries.BlockJsonParser",
       "mc.recraftors.dumpster.parsers.registries.EntityAttributeJsonParser",
-      "mc.recraftors.dumpster.parsers.registries.ClampedEntityAttributeJsonParser"
+      "mc.recraftors.dumpster.parsers.registries.ClampedEntityAttributeJsonParser",
+      "mc.recraftors.dumpster.parsers.registries.ObjectJsonParser"
     ]
   },
   "mixins": [

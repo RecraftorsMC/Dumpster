@@ -173,7 +173,7 @@ public final class JsonUtils {
             if (type == Object.class) break;
             type = type.getSuperclass();
             parser = REGISTRY_PARSERS.get(type);
-            if (parser.in(o) != InResult.SUCCESS) parser = null;
+            if (parser != null && parser.in(o) != InResult.SUCCESS) parser = null;
             addons.addAll(REGISTRY_ADDON_PARSERS.getOrDefault(type, new ArrayList<>()));
         }
         return new Pair<>(parser, addons);
@@ -248,8 +248,8 @@ public final class JsonUtils {
                 mergeIn(o, unknownJson(value));
             } else {
                 JsonObject ox = parser.toJson();
-                if (ox == null) return;
-                mergeIn(o, ox);
+                if (ox == null) mergeIn(o, unknownJson(value));
+                else mergeIn(o, ox);
             }
             addonParsers.forEach(addon -> {
                 if (addon.in(value) != InResult.SUCCESS) return;
