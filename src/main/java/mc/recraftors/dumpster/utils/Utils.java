@@ -111,6 +111,7 @@ public final class Utils {
                 FileUtils.storeRecipe(result.value(), result.id(), result.type(), now, result.isSpecial(), i);
             }
         });
+        JsonUtils.cycleRecipeParsers();
         nonParsableTypes.forEach(e -> LOGGER.error("Unable to parse recipes of type {}", e));
         i.addAndGet(erroredRecipes.size() + nonParsableTypes.size());
         Map<String, Set<Identifier>> out = new HashMap<>();
