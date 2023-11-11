@@ -224,7 +224,7 @@ public final class Utils {
                 FileUtils.storeLootTable(o, id, now, i);
             } catch (JsonIOException|NullPointerException|IllegalStateException e) {
                 i.incrementAndGet();
-                errTables.add(id);
+                debug(errTables, id, e);
             }
         });
         if (errTables.isEmpty()) return Map.of();
@@ -235,9 +235,13 @@ public final class Utils {
             @NotNull ServerWorld world, @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
         Set<Identifier> err = new HashSet<>();
         world.getServer().getAdvancementLoader().getAdvancements().forEach(adv -> {
-            JsonObject o = JsonUtils.advancementToJson(adv);
-            if (FileUtils.storeAdvancement(o, adv.getId(), now, i)) {
-                err.add(adv.getId());
+            try {
+                JsonObject o = JsonUtils.advancementToJson(adv);
+                if (FileUtils.storeAdvancement(o, adv.getId(), now, i)) {
+                    err.add(adv.getId());
+                }
+            } catch (Exception ex) {
+                debug(err, adv.getId(), ex);
             }
         });
         if (!err.isEmpty()) return Map.of("Advancements", err);
@@ -251,8 +255,12 @@ public final class Utils {
         GeneratorOptions options = ((IObjectProvider<GeneratorOptions>) world.getStructureAccessor()).dumpster$getObject();
         options.getDimensions().getEntrySet().forEach(entry -> {
             Identifier id = entry.getKey().getValue();
-            if (FileUtils.storeDimension(JsonUtils.dimensionJson(entry.getValue()), id, now, i)) {
-                err.add(entry.getKey().getValue());
+            try {
+                if (FileUtils.storeDimension(JsonUtils.dimensionJson(entry.getValue()), id, now, i)) {
+                    err.add(entry.getKey().getValue());
+                }
+            } catch (Exception ex) {
+                debug(err, id, ex);
             }
         });
         if (!err.isEmpty()) return Map.of("Dimensions", err);
@@ -263,8 +271,12 @@ public final class Utils {
             @NotNull LocalDateTime now, @NotNull AtomicInteger i) {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.DIMENSION_TYPE.getEntrySet().forEach(e -> {
-            if (FileUtils.storeDimensionType(JsonUtils.dimensionTypeJson(e.getValue()), e.getKey().getValue(), now, i)) {
-                err.add(e.getKey().getValue());
+            try {
+                if (FileUtils.storeDimensionType(JsonUtils.dimensionTypeJson(e.getValue()), e.getKey().getValue(), now, i)) {
+                    err.add(e.getKey().getValue());
+                }
+            } catch (Exception ex) {
+                debug(err, e.getKey().getValue(), ex);
             }
         });
         if (!err.isEmpty()) return Map.of("Dimension Types", err);
@@ -308,7 +320,7 @@ public final class Utils {
                     err.add(id);
                 }
             } catch (Exception e) {
-                LOGGER.error(e);
+                debug(err, id, e);
             }
         }
         if (!err.isEmpty()) return Map.of("Structure Templates", err);
@@ -319,15 +331,19 @@ public final class Utils {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.DYNAMIC_REGISTRY_MANAGER.getManaged(Registry.BIOME_KEY).getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
-            Biome b = e.getValue();
-            if (b == null) {
-                err.add(id);
-                i.getAndIncrement();
-                return;
-            }
-            JsonObject o = JsonUtils.biomeJson(b);
-            if (FileUtils.storeWorldgen(o, id, "biome", now, i)) {
-                err.add(id);
+            try {
+                Biome b = e.getValue();
+                if (b == null) {
+                    err.add(id);
+                    i.getAndIncrement();
+                    return;
+                }
+                JsonObject o = JsonUtils.biomeJson(b);
+                if (FileUtils.storeWorldgen(o, id, "biome", now, i)) {
+                    err.add(id);
+                }
+            } catch (Exception ex) {
+                debug(err, id, ex);
             }
         });
         if (!err.isEmpty()) {
@@ -340,15 +356,19 @@ public final class Utils {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.DYNAMIC_REGISTRY_MANAGER.getManaged(Registry.CONFIGURED_CARVER_KEY).getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
-            ConfiguredCarver<?> carver = e.getValue();
-            if (carver == null) {
-                err.add(id);
-                i.incrementAndGet();
-                return;
-            }
-            JsonObject o = JsonUtils.configuredCarverJson(carver);
-            if (FileUtils.storeWorldgen(o, id, "configured_carver", now, i)) {
-                err.add(id);
+            try {
+                ConfiguredCarver<?> carver = e.getValue();
+                if (carver == null) {
+                    err.add(id);
+                    i.incrementAndGet();
+                    return;
+                }
+                JsonObject o = JsonUtils.configuredCarverJson(carver);
+                if (FileUtils.storeWorldgen(o, id, "configured_carver", now, i)) {
+                    err.add(id);
+                }
+            } catch (Exception ex) {
+                debug(err, id, ex);
             }
         });
         if (!err.isEmpty()) return Map.of("Configured Carvers", err);
@@ -360,15 +380,19 @@ public final class Utils {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.CONFIGURED_FEATURE.getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
-            ConfiguredFeature<?,?> feature = e.getValue();
-            if (feature == null) {
-                err.add(id);
-                i.incrementAndGet();
-                return;
-            }
-            JsonObject o = JsonUtils.configuredFeatureJson(feature);
-            if (FileUtils.storeWorldgen(o, id, "configured_feature", now, i)) {
-                err.add(id);
+            try {
+                ConfiguredFeature<?, ?> feature = e.getValue();
+                if (feature == null) {
+                    err.add(id);
+                    i.incrementAndGet();
+                    return;
+                }
+                JsonObject o = JsonUtils.configuredFeatureJson(feature);
+                if (FileUtils.storeWorldgen(o, id, "configured_feature", now, i)) {
+                    err.add(id);
+                }
+            } catch (Exception ex) {
+                debug(err, id, ex);
             }
         });
         if (err.isEmpty()) return Map.of();
@@ -380,15 +404,19 @@ public final class Utils {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.DENSITY_FUNCTION.getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
-            DensityFunction function = e.getValue();
-            if (function == null) {
-                err.add(id);
-                i.incrementAndGet();
-                return;
-            }
-            JsonObject o = JsonUtils.densityFunctionJson(function);
-            if (FileUtils.storeWorldgen(o, id, "density_function", now, i)) {
-                err.add(id);
+            try {
+                DensityFunction function = e.getValue();
+                if (function == null) {
+                    err.add(id);
+                    i.incrementAndGet();
+                    return;
+                }
+                JsonObject o = JsonUtils.densityFunctionJson(function);
+                if (FileUtils.storeWorldgen(o, id, "density_function", now, i)) {
+                    err.add(id);
+                }
+            } catch (Exception ex) {
+                debug(err, id, ex);
             }
         });
         if (err.isEmpty()) return Map.of();
@@ -400,15 +428,19 @@ public final class Utils {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.FLAT_LEVEL_GENERATOR_PRESET.getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
-            FlatLevelGeneratorPreset preset = e.getValue();
-            if (preset == null) {
-                err.add(id);
-                i.incrementAndGet();
-                return;
-            }
-            JsonObject o = JsonUtils.flatLevelGeneratorPresetJson(preset);
-            if (FileUtils.storeWorldgen(o, id, "flat_level_generator_preset", now, i)) {
-                err.add(id);
+            try {
+                FlatLevelGeneratorPreset preset = e.getValue();
+                if (preset == null) {
+                    err.add(id);
+                    i.incrementAndGet();
+                    return;
+                }
+                JsonObject o = JsonUtils.flatLevelGeneratorPresetJson(preset);
+                if (FileUtils.storeWorldgen(o, id, "flat_level_generator_preset", now, i)) {
+                    err.add(id);
+                }
+            } catch (Exception ex) {
+                debug(err, id, ex);
             }
         });
         if (err.isEmpty()) return Map.of();
@@ -420,15 +452,19 @@ public final class Utils {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.NOISE_PARAMETERS.getEntrySet().forEach(e -> {
             Identifier id= e.getKey().getValue();
-            DoublePerlinNoiseSampler.NoiseParameters noise = e.getValue();
-            if (noise == null) {
-                err.add(id);
-                i.incrementAndGet();
-                return;
-            }
-            JsonObject o = JsonUtils.noiseJson(noise);
-            if (FileUtils.storeWorldgen(o, id, "noise", now, i)) {
-                err.add(id);
+            try {
+                DoublePerlinNoiseSampler.NoiseParameters noise = e.getValue();
+                if (noise == null) {
+                    err.add(id);
+                    i.incrementAndGet();
+                    return;
+                }
+                JsonObject o = JsonUtils.noiseJson(noise);
+                if (FileUtils.storeWorldgen(o, id, "noise", now, i)) {
+                    err.add(id);
+                }
+            } catch (Exception ex) {
+                debug(err, id, ex);
             }
         });
         if (err.isEmpty()) return Map.of();
@@ -440,15 +476,19 @@ public final class Utils {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.CHUNK_GENERATOR_SETTINGS.getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
-            ChunkGeneratorSettings settings = e.getValue();
-            if (settings == null) {
-                err.add(id);
-                i.incrementAndGet();
-                return;
-            }
-            JsonObject o = JsonUtils.chunkGeneratorSettingsJson(settings);
-            if (FileUtils.storeWorldgen(o, id, "noise_settings", now, i)) {
-                err.add(id);
+            try {
+                ChunkGeneratorSettings settings = e.getValue();
+                if (settings == null) {
+                    err.add(id);
+                    i.incrementAndGet();
+                    return;
+                }
+                JsonObject o = JsonUtils.chunkGeneratorSettingsJson(settings);
+                if (FileUtils.storeWorldgen(o, id, "noise_settings", now, i)) {
+                    err.add(id);
+                }
+            } catch (Exception ex) {
+                debug(err, id, ex);
             }
         });
         if (err.isEmpty()) return Map.of();
@@ -460,15 +500,19 @@ public final class Utils {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.PLACED_FEATURE.getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
-            PlacedFeature feature = e.getValue();
-            if (feature == null) {
-                err.add(id);
-                i.incrementAndGet();
-                return;
-            }
-            JsonObject o = JsonUtils.placedFeatureJson(feature);
-            if (FileUtils.storeWorldgen(o, id, "placed_feature", now, i)) {
-                err.add(id);
+            try {
+                PlacedFeature feature = e.getValue();
+                if (feature == null) {
+                    err.add(id);
+                    i.incrementAndGet();
+                    return;
+                }
+                JsonObject o = JsonUtils.placedFeatureJson(feature);
+                if (FileUtils.storeWorldgen(o, id, "placed_feature", now, i)) {
+                    err.add(id);
+                }
+            } catch (Exception ex) {
+                debug(err, id, ex);
             }
         });
         if (err.isEmpty()) return Map.of();
@@ -480,15 +524,19 @@ public final class Utils {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.STRUCTURE_PROCESSOR_LIST.getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
-            StructureProcessorList list = e.getValue();
-            if (list == null) {
-                err.add(id);
-                i.incrementAndGet();
-                return;
-            }
-            JsonObject o = JsonUtils.processorListJson(list);
-            if (FileUtils.storeWorldgen(o, id, "processor_list", now, i)) {
-                err.add(id);
+            try {
+                StructureProcessorList list = e.getValue();
+                if (list == null) {
+                    err.add(id);
+                    i.incrementAndGet();
+                    return;
+                }
+                JsonObject o = JsonUtils.processorListJson(list);
+                if (FileUtils.storeWorldgen(o, id, "processor_list", now, i)) {
+                    err.add(id);
+                }
+            } catch (Exception ex) {
+                debug(err, id, ex);
             }
         });
         if (err.isEmpty()) return Map.of();
@@ -500,15 +548,19 @@ public final class Utils {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.STRUCTURE.getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
-            Structure structure = e.getValue();
-            if (structure == null) {
-                err.add(id);
-                i.incrementAndGet();
-                return;
-            }
-            JsonObject o = JsonUtils.structureJson(structure);
-            if (FileUtils.storeWorldgen(o, id, "structure", now, i)) {
-                err.add(id);
+            try {
+                Structure structure = e.getValue();
+                if (structure == null) {
+                    err.add(id);
+                    i.incrementAndGet();
+                    return;
+                }
+                JsonObject o = JsonUtils.structureJson(structure);
+                if (FileUtils.storeWorldgen(o, id, "structure", now, i)) {
+                    err.add(id);
+                }
+            } catch (Exception ex) {
+                debug(err, id, ex);
             }
         });
         if (err.isEmpty()) return Map.of();
@@ -520,15 +572,19 @@ public final class Utils {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.STRUCTURE_SET.getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
-            StructureSet set = e.getValue();
-            if (set == null) {
-                err.add(id);
-                i.incrementAndGet();
-                return;
-            }
-            JsonObject o = JsonUtils.structureSetJson(set);
-            if (FileUtils.storeWorldgen(o, id, "structure_set", now, i)) {
-                err.add(id);
+            try {
+                StructureSet set = e.getValue();
+                if (set == null) {
+                    err.add(id);
+                    i.incrementAndGet();
+                    return;
+                }
+                JsonObject o = JsonUtils.structureSetJson(set);
+                if (FileUtils.storeWorldgen(o, id, "structure_set", now, i)) {
+                    err.add(id);
+                }
+            } catch (Exception ex) {
+                debug(err, id, ex);
             }
         });
         if (err.isEmpty()) return Map.of();
@@ -540,15 +596,19 @@ public final class Utils {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.STRUCTURE_POOL.getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
-            StructurePool pool = e.getValue();
-            if (pool == null) {
-                err.add(id);
-                i.incrementAndGet();
-                return;
-            }
-            JsonObject o = JsonUtils.structurePoolJson(pool);
-            if (FileUtils.storeWorldgen(o, id, "template_pool", now, i)) {
-                err.add(id);
+            try {
+                StructurePool pool = e.getValue();
+                if (pool == null) {
+                    err.add(id);
+                    i.incrementAndGet();
+                    return;
+                }
+                JsonObject o = JsonUtils.structurePoolJson(pool);
+                if (FileUtils.storeWorldgen(o, id, "template_pool", now, i)) {
+                    err.add(id);
+                }
+            } catch (Exception ex) {
+                debug(err, id, ex);
             }
         });
         if (err.isEmpty()) return Map.of();
@@ -560,15 +620,19 @@ public final class Utils {
         Set<Identifier> err = new HashSet<>();
         BuiltinRegistries.WORLD_PRESET.getEntrySet().forEach(e -> {
             Identifier id = e.getKey().getValue();
-            WorldPreset preset = e.getValue();
-            if (preset == null) {
-                err.add(id);
-                i.incrementAndGet();
-                return;
-            }
-            JsonObject o = JsonUtils.worldPresetJson(preset);
-            if (FileUtils.storeWorldgen(o, id, "world_preset", now, i)) {
-                err.add(id);
+            try {
+                WorldPreset preset = e.getValue();
+                if (preset == null) {
+                    err.add(id);
+                    i.incrementAndGet();
+                    return;
+                }
+                JsonObject o = JsonUtils.worldPresetJson(preset);
+                if (FileUtils.storeWorldgen(o, id, "world_preset", now, i)) {
+                    err.add(id);
+                }
+            } catch (Exception ex) {
+                debug(err, id, ex);
             }
         });
         if (err.isEmpty()) return Map.of();
@@ -676,6 +740,11 @@ public final class Utils {
         }
         lock.unlock();
         return n;
+    }
+
+    private static void debug(Set<Identifier> errSet, Identifier id, Exception ex) {
+        if (ConfigUtils.isDebugEnabled()) LOGGER.error(ex);
+        errSet.add(id);
     }
 
     public static void debug() {
