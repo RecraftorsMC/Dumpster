@@ -39,7 +39,7 @@ public final class FileUtils {
     }
 
     public static @NotNull StringBuilder pathBuilder(LocalDateTime now, String target, Identifier type) {
-        return pathBuilder(now, target, singleNameIdPath(type));
+        return pathBuilder(now, target, type.getNamespace()).append(File.separator).append(Utils.normalizeIdPath(type));
     }
 
     public static @NotNull StringBuilder pathBuilder(LocalDateTime now, String target, String type) {
